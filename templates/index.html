@@ -1,0 +1,15 @@
+<!doctype html>
+<title>Hello from Flask</title>
+{% if name %}
+  <h1>Hello {{ data }}!</h1>
+{% else %}
+  <h1>Hello, World!</h1>
+{% endif %}
+
+{% for d in data %}
+<ul>
+   <li>{{ d['user'] }}</li>
+   <li>{{ d['ts'] }}</li>
+   <li>{{ d['name'] }}</li>
+</ul>
+{% endfor %}
