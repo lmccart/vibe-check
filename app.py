@@ -1,16 +1,26 @@
 from markupsafe import escape
 from flask import Flask, render_template, request
 from flask_pymongo import PyMongo
+import json
+from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
 app.config["MONGO_URI"] = "mongodb://localhost:27017/vibecheck"
 mongo = PyMongo(app)
 
+class Encoder(json.JSONEncoder):
+  def default(self, obj):
+    if isinstance(obj, ObjectId):
+      return str(obj)
+    else:
+      return obj
+
 peopleDb = {}
 
 @app.route('/')
 def home_page():
+  updateDb()
   writeJson()
   return render_template('index.html') #, data=data)
 
@@ -82,7 +92,6 @@ def updatePersonEntry(faceid, expressions, maxExpressions, maxPhotos, numPeople)
       'faceid': faceid
     }
 
-
 # calculate average expressions and update mongo
 def prepAndUpdateMongo():
   docs = []
@@ -98,20 +107,15 @@ def prepAndUpdateMongo():
 # writes json file from mongo
 def writeJson():
   expressions = mongo.db['meta'].find({})[0].get('expressions')
+  output = {}
   for exp in expressions:
-    print(exp)
+    max = mongo.db['people'].find({}).sort('avgExpressions.'+exp)[0]
+    output[exp] = { 'faceid': max['faceid'], 'average': max['avgExpressions'][exp], 'photoPath': max['maxPhotos'][exp]}
+  with open('data.json', 'w', encoding='utf-8') as f:
+    json.dump(output, f, cls=Encoder, indent=2)
 
 
 
-  # expressions: {
-	# neutral: { average: number, photoPath: string },
-	# happiness: { average: number, photoPath: string },
-	# surprise: { average: number, photoPath: string },
-	# sadness: { average: number, photoPath: string },
-	# anger: { average: number, photoPath: string },
-	# disgust: { average: number, photoPath: string },
-	# contempt: { average: number, photoPath: string },
-
-
-# updateDb()
+updateDb()
 writeJson()
+
