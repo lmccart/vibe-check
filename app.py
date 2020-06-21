@@ -29,6 +29,7 @@ def get_expressions():
 
 # main method to be called on interval
 # analyzes each entry in recognized-photos, builds db of people, updates mongo
+# TODO: add in timestamp
 def updateDb():
   peopleDb = {}
   
@@ -117,7 +118,7 @@ def writeJson():
     json.dump(output, f, cls=Encoder, indent=2)
 
 
-
+# TODO: set task to do this on interval
 updateDb()
 writeJson()
 
