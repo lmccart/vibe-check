@@ -1,15 +1,13 @@
 <!doctype html>
-<title>Hello from Flask</title>
-{% if name %}
-  <h1>Hello {{ data }}!</h1>
-{% else %}
-  <h1>Hello, World!</h1>
-{% endif %}
-
-{% for d in data %}
-<ul>
-   <li>{{ d['user'] }}</li>
-   <li>{{ d['ts'] }}</li>
-   <li>{{ d['name'] }}</li>
-</ul>
-{% endfor %}
+<html>
+  <head>
+    <title>Hello from Flask</title>
+    <script type=text/javascript src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+  </body>
+  </head>
+  <body>
+    <div id="label">Makes us feel most <span id="expression"></span></div>
+    <img id="photo">
+    <script type=text/javascript src="{{ url_for('static', filename='js/main.js') }}"></script>
+  </body>
+</html>

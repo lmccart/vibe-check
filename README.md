@@ -5,7 +5,7 @@
 $ . venv/bin/activate
 $ export FLASK_APP=app.py
 $ export FLASK_ENV=development # debug
-$ python -m flask run
+$ flask run
 ```
 
 * backend

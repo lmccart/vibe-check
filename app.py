@@ -1,5 +1,5 @@
 from markupsafe import escape
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_pymongo import PyMongo
 import json
 from bson.objectid import ObjectId
@@ -18,12 +18,14 @@ class Encoder(json.JSONEncoder):
 
 peopleDb = {}
 
-@app.route('/')
-def home_page():
-  updateDb()
-  writeJson()
-  return render_template('index.html') #, data=data)
+@app.route('/<id>')
+def home_page(id):
+  # url = url_for('view', variable='parameter')
+  return render_template('index.html')
 
+@app.route('/getExpressions')
+def get_expressions():
+  return jsonify(mongo.db['meta'].find({})[0].get('expressions'))
 
 # main method to be called on interval
 # analyzes each entry in recognized-photos, builds db of people, updates mongo
@@ -111,7 +113,7 @@ def writeJson():
   for exp in expressions:
     max = mongo.db['people'].find({}).sort('avgExpressions.'+exp)[0]
     output[exp] = { 'faceid': max['faceid'], 'average': max['avgExpressions'][exp], 'photoPath': max['maxPhotos'][exp]}
-  with open('data.json', 'w', encoding='utf-8') as f:
+  with open('static/data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, cls=Encoder, indent=2)
 
 
