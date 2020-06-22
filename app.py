@@ -1,4 +1,3 @@
-from markupsafe import escape
 from flask import Flask, render_template, request, jsonify
 from flask_pymongo import PyMongo
 import json
@@ -6,7 +5,7 @@ from bson.objectid import ObjectId
 
 app = Flask(__name__)
 
-app.config["MONGO_URI"] = "mongodb://localhost:27017/vibecheck"
+app.config['MONGO_URI'] = 'mongodb://localhost:27017/vibecheck'
 mongo = PyMongo(app)
 
 class Encoder(json.JSONEncoder):
@@ -19,11 +18,10 @@ class Encoder(json.JSONEncoder):
 peopleDb = {}
 
 @app.route('/<id>')
-def home_page(id):
-  # url = url_for('view', variable='parameter')
+def home_page():
   return render_template('index.html')
 
-@app.route('/getExpressions')
+@app.route('/get_expressions')
 def get_expressions():
   return jsonify(mongo.db['meta'].find({})[0].get('expressions'))
 
@@ -112,8 +110,8 @@ def writeJson():
   expressions = mongo.db['meta'].find({})[0].get('expressions')
   output = {}
   for exp in expressions:
-    max = mongo.db['people'].find({}).sort('avgExpressions.'+exp)[0]
-    output[exp] = { 'faceid': max['faceid'], 'average': max['avgExpressions'][exp], 'photoPath': max['maxPhotos'][exp]}
+    maxExp = mongo.db['people'].find({}).sort('avgExpressions.'+exp)[0]
+    output[exp] = { 'faceid': maxExp['faceid'], 'average': maxExp['avgExpressions'][exp], 'photoPath': maxExp['maxPhotos'][exp]}
   with open('static/data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, cls=Encoder, indent=2)
 
