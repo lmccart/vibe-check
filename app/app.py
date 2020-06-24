@@ -10,10 +10,14 @@ mongo = PyMongo(app)
 
 class Encoder(json.JSONEncoder):
   def default(self, obj):
-    if isinstance(obj, ObjectId):
+    if hasattr(obj, 'isoformat'):
+        return obj.isoformat()
+    elif isinstance(obj, ObjectId):
       return str(obj)
     else:
       return obj
+
+
 
 @app.route('/<id>')
 def home_page(id):
@@ -42,6 +46,7 @@ def update_db():
       expressions = {}
       max_expressions = {}
       max_photos = {}
+      max_timestamp = {}
       for exp in person.get('expressions'):
         val = total_expressions[exp] - person.get('expressions')[exp]
         if exp in expressions:
@@ -49,13 +54,15 @@ def update_db():
           if val > max_expressions[exp]:
             max_expressions[exp] = val
             max_photos[exp] = document.get('photoPath')
+            max_timestamp[exp] = document.get('created')
         else:
           expressions[exp] = val
           max_expressions[exp] = val
           max_photos[exp] = document.get('photoPath')
+          max_timestamp[exp] = document.get('created')
 
       # add or update entry in people_db
-      update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, num_people)
+      update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, max_timestamp, num_people)
 
   # enter all into mongodb
   prep_and_update_mongo(people_db)
@@ -73,7 +80,7 @@ def sum_photo_expressions(people):
   return total_expressions
 
 # add or update entry in people_db
-def update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, num_people):
+def update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, max_timestamp, num_people):
   if faceid in people_db.keys():
     people_db[faceid]['num_people'] += num_people
     for exp in expressions:
@@ -81,12 +88,14 @@ def update_person_entry(people_db, faceid, expressions, max_expressions, max_pho
       if max_expressions[exp] > people_db[faceid]['max_expressions'][exp]:
         people_db[faceid]['max_expressions'][exp] = max_expressions[exp]
         people_db[faceid]['max_photos'][exp] = max_photos[exp]
+        people_db[faceid]['max_timestamp'][exp] = max_timestamp[exp]
   else:
     people_db[faceid] = {
       'expressions': expressions,
       'avg_expressions': {},
       'max_expressions': max_expressions,
       'max_photos': max_photos,
+      'max_timestamp': max_timestamp,
       'num_people': num_people,
       'faceid': faceid
     }
@@ -108,8 +117,8 @@ def write_json():
   expressions = mongo.db['meta'].find({})[0].get('expressions')
   output = {}
   for exp in expressions:
-    maxExp = mongo.db['people'].find({}).sort('avg_expressions.'+exp)[0]
-    output[exp] = { 'faceid': maxExp['faceid'], 'average': maxExp['avg_expressions'][exp], 'photoPath': maxExp['max_photos'][exp]}
+    max_exp = mongo.db['people'].find().sort(  'avg_expressions.'+exp, -1 )[0]
+    output[exp] = { 'faceid': max_exp['faceid'], 'average': max_exp['avg_expressions'][exp], 'photoPath': max_exp['max_photos'][exp], 'timestamp': max_exp['max_timestamp'][exp]}
   with open('static/data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, cls=Encoder, indent=2)
 
