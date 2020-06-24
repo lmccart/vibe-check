@@ -15,10 +15,8 @@ class Encoder(json.JSONEncoder):
     else:
       return obj
 
-peopleDb = {}
-
 @app.route('/<id>')
-def home_page():
+def home_page(id):
   return render_template('index.html')
 
 @app.route('/get_expressions')
@@ -28,95 +26,95 @@ def get_expressions():
 # main method to be called on interval
 # analyzes each entry in recognized-photos, builds db of people, updates mongo
 # TODO: add in timestamp
-def updateDb():
-  peopleDb = {}
+def update_db():
+  people_db = {}
   
   for document in mongo.db['recognized-photos'].find({}):
     people = document.get('people')
 
     # get sum of expressions in photo
-    totalExpressions = sumPhotoExpressions(people)
-    numPeople = len(people) - 1
+    total_expressions = sum_photo_expressions(people)
+    num_people = len(people) - 1
     
     # for each person, calculate total expression response
     for person in people:
       faceid = person.get('faceid')
       expressions = {}
-      maxExpressions = {}
-      maxPhotos = {}
+      max_expressions = {}
+      max_photos = {}
       for exp in person.get('expressions'):
-        val = totalExpressions[exp] - person.get('expressions')[exp]
+        val = total_expressions[exp] - person.get('expressions')[exp]
         if exp in expressions:
           expressions[exp] += val
-          if val > maxExpressions[exp]:
-            maxExpressions[exp] = val
-            maxPhotos[exp] = document.get('photoPath')
+          if val > max_expressions[exp]:
+            max_expressions[exp] = val
+            max_photos[exp] = document.get('photoPath')
         else:
           expressions[exp] = val
-          maxExpressions[exp] = val
-          maxPhotos[exp] = document.get('photoPath')
+          max_expressions[exp] = val
+          max_photos[exp] = document.get('photoPath')
 
-      # add or update entry in peopleDb
-      updatePersonEntry(faceid, expressions, maxExpressions, maxPhotos, numPeople)
+      # add or update entry in people_db
+      update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, num_people)
 
   # enter all into mongodb
-  prepAndUpdateMongo()
+  prep_and_update_mongo(people_db)
 
 # calculate sum expressions expressed in photo by all (helper method)
-def sumPhotoExpressions(people):
-  totalExpressions = {}
+def sum_photo_expressions(people):
+  total_expressions = {}
   for person in people:
     for exp in person.get('expressions'):
       val = person.get('expressions')[exp]
-      if exp in totalExpressions:
-        totalExpressions[exp] += val
+      if exp in total_expressions:
+        total_expressions[exp] += val
       else:
-        totalExpressions[exp] = val
-  return totalExpressions
+        total_expressions[exp] = val
+  return total_expressions
 
-# add or update entry in peopleDb
-def updatePersonEntry(faceid, expressions, maxExpressions, maxPhotos, numPeople):
-  if faceid in peopleDb.keys():
-    peopleDb[faceid]['numPeople'] += numPeople
+# add or update entry in people_db
+def update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, num_people):
+  if faceid in people_db.keys():
+    people_db[faceid]['num_people'] += num_people
     for exp in expressions:
-      peopleDb[faceid]['expressions'][exp] += expressions[exp]
-      if maxExpressions[exp] > peopleDb[faceid]['maxExpressions'][exp]:
-        peopleDb[faceid]['maxExpressions'][exp] = maxExpressions[exp]
-        peopleDb[faceid]['maxPhotos'][exp] = maxPhotos[exp]
+      people_db[faceid]['expressions'][exp] += expressions[exp]
+      if max_expressions[exp] > people_db[faceid]['max_expressions'][exp]:
+        people_db[faceid]['max_expressions'][exp] = max_expressions[exp]
+        people_db[faceid]['max_photos'][exp] = max_photos[exp]
   else:
-    peopleDb[faceid] = {
+    people_db[faceid] = {
       'expressions': expressions,
-      'avgExpressions': {},
-      'maxExpressions': maxExpressions,
-      'maxPhotos': maxPhotos,
-      'numPeople': numPeople,
+      'avg_expressions': {},
+      'max_expressions': max_expressions,
+      'max_photos': max_photos,
+      'num_people': num_people,
       'faceid': faceid
     }
 
 # calculate average expressions and update mongo
-def prepAndUpdateMongo():
+def prep_and_update_mongo(people_db):
   docs = []
-  for faceid in peopleDb:
-    for exp in peopleDb[faceid]['expressions']:
-      peopleDb[faceid]['avgExpressions'][exp] = peopleDb[faceid]['expressions'][exp]/(peopleDb[faceid]['numPeople'])
-    docs.append(peopleDb[faceid])
+  for faceid in people_db:
+    for exp in people_db[faceid]['expressions']:
+      people_db[faceid]['avg_expressions'][exp] = people_db[faceid]['expressions'][exp]/(people_db[faceid]['num_people'])
+    docs.append(people_db[faceid])
   print(len(docs))
 
   mongo.db['people'].drop() # clear people collection, recreated regularly
   mongo.db['people'].insert_many(docs)
 
 # writes json file from mongo
-def writeJson():
+def write_json():
   expressions = mongo.db['meta'].find({})[0].get('expressions')
   output = {}
   for exp in expressions:
-    maxExp = mongo.db['people'].find({}).sort('avgExpressions.'+exp)[0]
-    output[exp] = { 'faceid': maxExp['faceid'], 'average': maxExp['avgExpressions'][exp], 'photoPath': maxExp['maxPhotos'][exp]}
+    maxExp = mongo.db['people'].find({}).sort('avg_expressions.'+exp)[0]
+    output[exp] = { 'faceid': maxExp['faceid'], 'average': maxExp['avg_expressions'][exp], 'photoPath': maxExp['max_photos'][exp]}
   with open('static/data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, cls=Encoder, indent=2)
 
 
 # TODO: set task to do this on interval
-updateDb()
-writeJson()
+update_db()
+write_json()
 
