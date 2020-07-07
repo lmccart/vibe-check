@@ -6,14 +6,21 @@ def log(*args):
 
 log('loading libraries')
 
-import RawProcessor
+from RawProcessor import RawProcessor
 import cv2
 import arducam_mipicamera as arducam
 import v4l2
 import numpy as np
 import requests
+from requests.exceptions import ConnectionError
 
-url = 'http://kyle.local:5000/vibecheck/upload/0'
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument('--id', type=int, default=0)
+args = parser.parse_args()
+
+host = 'kyle.local'
+url = 'http://' + host + ':5000/vibecheck/upload/' + str(args.id)
 exposure = 400
 focus = 100
 jpeg_quality = 90
@@ -51,8 +58,12 @@ def capture_and_send():
     # upload to server
     data = encimg.tostring()
     headers = {'content-type': 'image/jpeg'}
-    requests.post(url, data=data, headers=headers)
-    log(len(data))
+    try:
+        requests.post(url, data=data, headers=headers)
+        mb = float(len(data)) / (1000 * 1000)
+        log('sent', round(mb, 2), 'MB')
+    except ConnectionError:
+        log('connection error')
 
 log('capturing')
 while True:
