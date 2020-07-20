@@ -1,0 +1,22 @@
+#mask {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+  display: none;
+}
+
+#rect {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+}
+
+img {
+  width: 100%; 
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
