@@ -1,0 +1,9 @@
+numpy
+opencv
+onnx
+onnxruntime
+dlib
+scipy
+sklearn
+easydict
+skimage

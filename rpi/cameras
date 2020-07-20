@@ -1,0 +1,165 @@
+#!/usr/bin/env bash -m
+
+# script configuration
+HOSTNAME_PREFIX=vibe-check-camera-
+HOSTNAME_SUFFIX=.local
+ROOT_NAME=camera
+
+# automatically configured global variables
+SSH_FILE="$HOME/.ssh/id_rsa"
+SCRIPT=`basename "$0"`
+if [ -z "$cameras" ]; then
+    CAMERAS="0 1 2 3 4 5 6 7 8 9 10 11"
+else
+    CAMERAS=$cameras
+fi
+
+function usage() {
+    cat << EOF
+./$SCRIPT
+
+   Control all the cameras.
+
+    help: print this message
+    list: list all the camera ids
+    set-hostname <ip> <id>: setup hostname and SSH at <ip> as camera <id>
+    ping: check connection to all cameras
+    exec: execute command via ssh on all cameras
+    log: display logfile for all cameras
+    shutdown: shutdown all cameras
+    reboot: reboot all cameras
+    update: rsync code and install arducam library on all cameras
+    start: run start.sh <id> on all cameras
+    stop: run killall.sh stream.py on all cameras
+EOF
+   exit
+}
+
+function get_hostname() {
+    echo $HOSTNAME_PREFIX$1$HOSTNAME_SUFFIX
+}
+
+if [ $# -eq 0 ]; then
+   usage
+fi
+
+# these are cases that do not require IDs
+case "$1" in
+help)
+    usage
+;;
+list)
+    for I in $CAMERAS; do
+        HOSTNAME=`get_hostname $I`
+        echo $I $HOSTNAME
+    done
+    exit
+esac
+
+# these are cases that operate on a specific device
+case "$1" in
+set-hostname)
+    if [ "$#" -ne 3 ]; then
+        echo "Example: ./$SCRIPT set-hostname 192.168.0.150 0"
+        usage
+    fi
+    
+    if [ ! -e "$SSH_FILE" ]; then
+        echo "Couldn't find $SSH_FILE"
+        exit
+    fi
+
+    IP=$2
+    NUMBER=$3
+    AT=pi@$IP
+    ssh-copy-id -i $SSH_FILE $AT
+    HOSTNAME=$HOSTNAME_PREFIX$NUMBER
+    # it takes four separate commands to fully set the hostname
+    # "sudo: unable to resolve host..." is not an error, just intermediate
+    # final command restarts the mdns server
+    ssh $AT "sudo sed -i \"s/0\.1\.1.*/0.1.1\t$HOSTNAME/g\" /etc/hosts &&\
+        sudo hostnamectl set-hostname $HOSTNAME &&\
+        sudo hostname $HOSTNAME &&\
+        echo $HOSTNAME | sudo tee /etc/hostname &&\
+        sudo systemctl restart avahi-daemon"
+;;
+esac
+
+case "$1" in
+    ping) ;;
+    exec) ;;
+    log) ;;
+    shutdown) ;;
+    reboot) ;;
+    update) ;;
+    status) ;;
+    pingtime) ;;
+    start) ;;
+    stop) ;;
+    *)
+        echo "Invalid command"
+        usage
+    ;;
+esac
+
+for ID in $CAMERAS; do
+{
+    AT=pi@$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
+    
+    # check if the device is online before continuing
+    ssh -q \
+        -o BatchMode=yes \
+        -o StrictHostKeyChecking=no \
+        -o ConnectTimeout=1 \
+        $AT \
+        'exit 0'
+    if [ $? -ne 0 ]
+    then
+        echo "$AT offline"
+        continue
+    fi
+
+    case "$1" in
+    ping)
+        echo $AT online
+    ;;
+    exec)
+        ssh $AT "${@:2}"
+    ;;
+    log)
+        ssh $AT "cat camera.log"
+    ;;
+    shutdown)
+        ssh $AT "/sbin/shutdown now"
+    ;;
+    reboot)
+        ssh $AT "/sbin/shutdown --reboot now"
+    ;;
+    pingtime)
+        HOSTNAME=`hostname`
+        ssh $AT 'RTT=`ping -c4 -i0.2 $HOSTNAME.local | grep rtt` &&\
+            echo '$AT' $RTT'
+    ;;
+    status) 
+        ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` &&\
+            CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` &&\
+            echo '$AT' $TEMP $CPU_MEM'
+    ;;
+    update)
+        rsync -a \
+            --exclude=.DS_Store \
+            --exclude=__pycache__ \
+            --delete \
+            camera/ $AT:~/$ROOT_NAME/
+        ssh $AT 'sudo install -m 644 camera/libarducam_mipicamera.so /usr/lib/'
+    ;;
+    start)
+        ssh $AT "nohup bash ~/$ROOT_NAME/start.sh $ID 2>&1 &"
+    ;;
+    stop)
+        ssh $AT ". ~/$ROOT_NAME/killall.sh stream.py"
+    ;;
+    esac
+} &
+done
+wait
