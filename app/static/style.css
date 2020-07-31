@@ -1,7 +1,5 @@
 #mask {
   position: absolute;
-  top: 0;
-  left: 0;
   z-index: 1;
   display: none;
 }
@@ -14,9 +12,59 @@
 }
 
 img {
-  width: 100%; 
+  height: 100%; 
   position: absolute;
   top: 0;
   left: 0;
   z-index: -1;
+}
+
+#text {
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  text-align: center;
+}
+
+#label {
+  display: inline-block;
+  margin: 3.0em 0 0 0;
+  padding: 0 0.25em;
+  background: black;
+  color: white;
+  font-size: 8vw;
+  font-family: botanika-mono-web, monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #ff0039;
+}
+
+#expression {
+  display: inline-block;
+  margin: 0.25em 1.8em 0 0;
+  padding: 0 0.2em;
+  background: black;
+  font-size: 12vw;
+  font-weight: 600;
+  font-style: italic;
+  font-family: botanika-mono-web, monospace;
+  text-transform: uppercase;
+  color: #ff0039;
+  display: none;
+}
+
+.blink {
+  animation: blink-animation 2s steps(2, start) infinite;
+}
+@keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
+}
+@-webkit-keyframes blink-animation {
+  to {
+    visibility: hidden;
+  }
 }

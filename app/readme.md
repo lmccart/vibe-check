@@ -6,5 +6,6 @@ $ # start remote connection to server
 $ . venv/bin/activate
 $ export FLASK_APP=app.py
 $ export FLASK_ENV=development # debug
+$ cd app
 $ python app.py
 ```

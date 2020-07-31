@@ -3,16 +3,18 @@
   <head>
     <title>vibe check</title>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+    <link rel="stylesheet" href="https://use.typekit.net/tnf6ooo.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </body>
   </head>
   <body>
     <img id="mask" src="{{ url_for('static', filename='mask.png') }}">
-
-
-    <div id="label">Makes us feel most <span id="expression"></span></div>
     <img id="photo">
-    <img id="rect" src="{{ url_for('static', filename='rect.png') }}">
+
+    <div id="text">
+      <div id="label">They make us feel</div>
+      <div id="expression"></div>
+    </div>
     <script type=text/javascript src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
 </html>
