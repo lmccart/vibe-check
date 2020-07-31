@@ -15,6 +15,10 @@ $.get('/get_meta', data => {
   photo_ratio = window.innerHeight/photo_height;
   expression = data.expressions[id];
 
+  $( '#label' ).css('color', data.colors[id]);
+  $( '#expression' ).css('color', data.colors[id]);
+  $( '#mask' ).attr('src', '/static/mask-'+expression+'.png');
+
   console.log(id, expression);
   // setInterval(update, 3000);
   update();
@@ -35,7 +39,6 @@ let update = () => {
     // check which side of photo to start from
     let start_x = x < photo_width * photo_ratio * 0.5 ? -photo_width * photo_ratio + screen_width : 0;
     reset(x, y, start_x);
-
     zoomIn(x, y, start_x);
   });
 };
