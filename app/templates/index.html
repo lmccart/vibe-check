@@ -3,16 +3,19 @@
   <head>
     <title>vibe check</title>
     <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script> -->
     <link rel="stylesheet" href="https://use.typekit.net/tnf6ooo.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   </body>
   </head>
   <body>
-    <img id="mask" src="{{ url_for('static', filename='mask.png') }}">
+    <img id="mask" src="{{ url_for('static', filename='mask-neutral.png') }}">
     <img id="photo">
 
-    <div id="text">
+    <div class="text">
       <div id="label">They make us feel</div>
+    </div>
+    <div class="text">
       <div id="expression"></div>
     </div>
     <script type=text/javascript src="{{ url_for('static', filename='js/main.js') }}"></script>

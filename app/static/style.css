@@ -20,7 +20,7 @@ img {
   z-index: -1;
 }
 
-#text {
+.text {
   width: 100%;
   position: absolute;
   top: 0;
@@ -31,7 +31,7 @@ img {
 
 #label {
   display: inline-block;
-  margin: 3.0em 0 0 0;
+  margin: 1.5em 0 0 0;
   padding: 0 0.25em;
   background: black;
   color: white;
@@ -44,7 +44,7 @@ img {
 
 #expression {
   display: inline-block;
-  margin: 0.25em 1.8em 0 0;
+  margin: 2em 0 0 0;
   padding: 0 0.2em;
   background: black;
   font-size: 12vw;
@@ -53,19 +53,4 @@ img {
   font-family: botanika-mono-web, monospace;
   text-transform: uppercase;
   color: #ff0039;
-  display: none;
-}
-
-.blink {
-  animation: blink-animation 2s steps(2, start) infinite;
-}
-@keyframes blink-animation {
-  to {
-    visibility: hidden;
-  }
-}
-@-webkit-keyframes blink-animation {
-  to {
-    visibility: hidden;
-  }
 }
