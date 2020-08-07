@@ -1,0 +1,24 @@
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+#wrapper {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100%;
+}
+
+.column {
+  display: flex;
+  flex-basis: 100%;
+  flex: 1;
+  height: 100%;
+  border: none;
+  outline: none;
+  transform: rotate(90deg);
+  overflow: hidden;
+}

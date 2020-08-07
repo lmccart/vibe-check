@@ -19,6 +19,16 @@ class Encoder(json.JSONEncoder):
 
 
 
+
+@app.route('/all0')
+def all0():
+  return render_template('all0.html')
+
+
+@app.route('/all1')
+def all1():
+  return render_template('all1.html')
+
 @app.route('/<id>')
 def home_page(id):
   return render_template('index.html')

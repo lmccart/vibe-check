@@ -9,14 +9,16 @@
   </body>
   </head>
   <body>
-    <img id="mask" src="{{ url_for('static', filename='mask-neutral.png') }}">
-    <img id="photo">
+    <div id="wrapper">
+      <img id="mask" src="{{ url_for('static', filename='mask-neutral.png') }}">
+      <img id="photo">
 
-    <div class="text">
-      <div id="label">They make us feel</div>
-    </div>
-    <div class="text">
-      <div id="expression"></div>
+      <div class="text">
+        <div id="label">They make us feel</div>
+      </div>
+      <div class="text">
+        <div id="expression"></div>
+      </div>
     </div>
     <script type=text/javascript src="{{ url_for('static', filename='js/main.js') }}"></script>
   </body>
