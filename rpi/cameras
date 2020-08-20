@@ -1,4 +1,4 @@
-#!/usr/bin/env bash -m
+#!/bin/bash -m
 
 # script configuration
 HOSTNAME_PREFIX=vibe-check-camera-
@@ -14,11 +14,17 @@ else
     CAMERAS=$cameras
 fi
 
+# check whether we are running under WSL
+WSL=false
+if grep -qEi "(microsoft|wsl)" /proc/version &> /dev/null ; then
+    WSL=true
+fi
+
 function usage() {
     cat << EOF
 ./$SCRIPT
 
-   Control all the cameras.
+   Control all the cameras. Define `cameras` to control a subset.
 
     help: print this message
     list: list all the camera ids
@@ -36,7 +42,21 @@ EOF
 }
 
 function get_hostname() {
-    echo $HOSTNAME_PREFIX$1$HOSTNAME_SUFFIX
+    echo $HOSTNAME_PREFIX$1
+}
+
+function get_address() {
+    echo `get_hostname $1`$HOSTNAME_SUFFIX
+}
+
+function get_at() {
+    ADDRESS=`get_address $1`
+    if $WSL; then
+        IP=`python3 resolve-dnsname.py vibe-check-camera-x.local`
+        echo pi@$IP
+    else
+        echo pi@$ADDRESS
+    fi
 }
 
 if [ $# -eq 0 ]; then
@@ -49,12 +69,18 @@ help)
     usage
 ;;
 list)
-    for I in $CAMERAS; do
-        HOSTNAME=`get_hostname $I`
-        echo $I $HOSTNAME
+    for ID in $CAMERAS; do
+        ADDRESS=`get_address $ID`
+        AT=`get_at $ID`
+        echo $ID $ADDRESS $AT
     done
     exit
 esac
+
+if [ ! -e "$SSH_FILE" ]; then
+    echo "Couldn't find $SSH_FILE"
+    exit
+fi
 
 # these are cases that operate on a specific device
 case "$1" in
@@ -62,11 +88,6 @@ set-hostname)
     if [ "$#" -ne 3 ]; then
         echo "Example: ./$SCRIPT set-hostname 192.168.0.150 0"
         usage
-    fi
-    
-    if [ ! -e "$SSH_FILE" ]; then
-        echo "Couldn't find $SSH_FILE"
-        exit
     fi
 
     IP=$2
@@ -85,26 +106,45 @@ set-hostname)
 ;;
 esac
 
+# checking command validity
 case "$1" in
     ping) ;;
     exec) ;;
-    log) ;;
     shutdown) ;;
     reboot) ;;
     update) ;;
     status) ;;
     pingtime) ;;
+    enable) ;;
     start) ;;
     stop) ;;
+    ssh-copy-id) ;;
+    disable) ;;
     *)
         echo "Invalid command"
         usage
     ;;
 esac
 
+# sequential commands
+for ID in $CAMERAS; do
+    AT=`get_at $ID`
+    case "$1" in
+    ssh-copy-id)
+        ssh-copy-id -i $SSH_FILE $AT
+    ;;
+    esac
+done
+
+# parallel commands
 for ID in $CAMERAS; do
 {
-    AT=pi@$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
+    ADDRESS=$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
+    AT=pi@$ADDRESS
+    if $WSL; then
+        IP=`python3 resolve-dnsname.py vibe-check-camera-x.local`
+        AT=pi@$IP
+    fi
     
     # check if the device is online before continuing
     ssh -q \
@@ -115,19 +155,16 @@ for ID in $CAMERAS; do
         'exit 0'
     if [ $? -ne 0 ]
     then
-        echo "$AT offline"
+        echo "$ID $ADDRESS $AT offline"
         continue
     fi
 
     case "$1" in
     ping)
-        echo $AT online
+        echo $ID $ADDRESS $AT  online
     ;;
     exec)
         ssh $AT "${@:2}"
-    ;;
-    log)
-        ssh $AT "cat camera.log"
     ;;
     shutdown)
         ssh $AT "/sbin/shutdown now"
@@ -138,12 +175,13 @@ for ID in $CAMERAS; do
     pingtime)
         HOSTNAME=`hostname`
         ssh $AT 'RTT=`ping -c4 -i0.2 $HOSTNAME.local | grep rtt` &&\
-            echo '$AT' $RTT'
+            echo '$ADDRESS' $RTT'
     ;;
     status) 
         ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` &&\
             CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` &&\
-            echo '$AT' $TEMP $CPU_MEM'
+            STATUS=`tail -n1 /var/log/vibecheck.err.log` &&\
+            echo '$AT' $STATUS $TEMP $CPU_MEM'
     ;;
     update)
         rsync -a \
@@ -151,13 +189,20 @@ for ID in $CAMERAS; do
             --exclude=__pycache__ \
             --delete \
             camera/ $AT:~/$ROOT_NAME/
+        rsync -a config/$ID.json $AT:~/$ROOT_NAME/config.json
         ssh $AT 'sudo install -m 644 camera/libarducam_mipicamera.so /usr/lib/'
     ;;
+    enable)
+        ssh $AT "systemctl enable vibecheck"
+    ;;
     start)
-        ssh $AT "nohup bash ~/$ROOT_NAME/start.sh $ID 2>&1 &"
+        ssh $AT "systemctl start vibecheck"
     ;;
     stop)
-        ssh $AT ". ~/$ROOT_NAME/killall.sh stream.py"
+        ssh $AT "systemctl stop vibecheck"
+    ;;
+    disable)
+        ssh $AT "systemctl disable vibecheck"
     ;;
     esac
 } &

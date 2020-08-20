@@ -4,3 +4,9 @@ __pycache__/*
 *.DS_Store
 */static/data.json
 *.pyc
+dns-cache.json
+face/models
+face/data
+face/out.jpg
+.ipynb_checkpoints
+*.bin

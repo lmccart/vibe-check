@@ -43,7 +43,30 @@
 # WantedBy=multi-user.target
 # EOL
 
+# systemctl daemon-reload
+
+# systemctl enable wpaping.service
+# systemctl start wpaping.service
+
+cat >/lib/systemd/system/vibecheck.service <<EOL
+[Unit]
+Description=Vibe Check Camera
+Requires=network-online.target
+
+[Service]
+WorkingDirectory=/home/pi/camera
+ExecStart=/home/pi/camera/stream.py
+User=pi
+StandardInput=null
+StandardOutput=append:/var/log/vibecheck.log
+StandardError=append:/var/log/vibecheck.err.log
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target
+EOL
+
 systemctl daemon-reload
 
-systemctl enable wpaping.service
-systemctl start wpaping.service
+systemctl enable vibecheck.service
+systemctl start vibecheck.service

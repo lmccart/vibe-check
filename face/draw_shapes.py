@@ -1,0 +1,52 @@
+import cv2
+
+def draw_line(canvas, pt1, pt2, r=1, stroke=None):
+    pt1 = tuple(map(int, pt1))
+    pt2 = tuple(map(int, pt2))
+    cv2.line(canvas, pt1, pt2, stroke, thickness=r, lineType=cv2.LINE_AA)
+
+def draw_text(canvas, text, xy, color=0, scale=1, thickness=1, highlight=None,
+        font_face=cv2.FONT_HERSHEY_SIMPLEX, antialias=False):
+    l,t = xy
+    (tw,th), baseline = cv2.getTextSize(text, font_face, scale, thickness)
+    t += th + baseline - 1
+    if highlight is not None:
+        canvas[t-th-baseline-1:t,l:l+tw] = highlight
+    cv2.putText(canvas, text, (l,t-baseline), font_face, scale, color, thickness, cv2.LINE_AA if antialias else 0)
+
+# for some reason a fill of 0 doesn't work, but 0.1 does work
+def draw_circle(canvas, xy, r=1, stroke=None, fill=None, thickness=1, antialias=False):
+    x,y = tuple(map(int, xy))
+    line_type = cv2.LINE_AA if antialias else cv2.LINE_8
+    if fill is not None:
+        cv2.circle(canvas, (x,y), r, fill, -1, line_type)
+    if stroke is not None:
+        cv2.circle(canvas, (x,y), r, stroke, thickness, line_type)
+
+def draw_rectangle(canvas, tblr, fill=None, stroke=None):
+    t,b,l,r = tblr
+    t = int(max(t,0))
+    b = int(min(b,canvas.shape[0]-1))
+    l = int(max(l,0))
+    r = int(min(r,canvas.shape[1]-1))
+    if fill is not None:
+        canvas[t:b,l:r] = fill
+    if stroke is not None:
+        b -= 1
+        r -= 1
+        try:
+            canvas[t:b,l] = stroke
+        except IndexError:
+            pass
+        try:
+            canvas[t:b,r] = stroke
+        except IndexError:
+            pass
+        try:
+            canvas[t,l:r] = stroke
+        except IndexError:
+            pass
+        try:
+            canvas[b,l:r+1] = stroke
+        except IndexError:
+            pass

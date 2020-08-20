@@ -1,11 +1,15 @@
+#!/usr/bin/env python
 from __future__ import print_function
 import datetime
+import sys
 
 def log(*args):
     print(str(datetime.datetime.now()), *args)
+    sys.stdout.flush()
 
 log('loading libraries')
 
+import json
 from RawProcessor import RawProcessor
 import cv2
 import arducam_mipicamera as arducam
@@ -14,24 +18,28 @@ import numpy as np
 import requests
 from requests.exceptions import ConnectionError
 
-import argparse
-parser = argparse.ArgumentParser()
-parser.add_argument('--id', type=int, default=0)
-args = parser.parse_args()
+# default configuration
+config = {
+    'id': 0,
+    'exposure': 1600,
+    'focus': 100,
+    'curves': [
+        [[0, 16], [127, 110], [255, 255]],
+        [[0, 17], [127, 159], [255, 255]],
+        [[0, 17], [127, 137], [255, 255]]]
+}
+
+# custom configuration overrides defaults
+with open('config.json') as f:
+    config.update(json.load(f))
 
 host = 'kyle.local'
-url = 'http://' + host + ':5000/vibecheck/upload/' + str(args.id)
-exposure = 400
-focus = 100
+url = 'http://' + host + ':5000/vibecheck/upload/' + str(config['id'])
 jpeg_quality = 90
 width, height = 4656, 3496
-curves = [
-    [[0, 16], [127, 110], [255, 255]],
-    [[0, 17], [127, 159], [255, 255]],
-    [[0, 17], [127, 137], [255, 255]]]
 
 # swap curves to bgr
-processor = RawProcessor(width, height, curves[::-1], 'bgr')
+processor = RawProcessor(width, height, config['curves'][::-1], 'bgr')
 
 log('connecting to camera')
 camera = arducam.mipi_camera()
@@ -41,10 +49,15 @@ log('configuring camera')
 camera.set_resolution(width, height)
 camera.software_auto_exposure(enable=False)
 camera.software_auto_white_balance(enable=False)
-camera.set_control(v4l2.V4L2_CID_EXPOSURE, exposure)
-camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, focus)
+camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
+camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 
 def capture_and_send():
+    with open('config.json') as f:
+        config.update(json.load(f))
+    camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
+    camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
+
     # capture image
     frame = camera.capture(encoding='raw')
 

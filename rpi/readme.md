@@ -58,6 +58,18 @@ And enable the camera and I2C with `sudo raspi-config`:
 7. Right arrow key twice to select <Back>, enter
 8. Right arrow key twice to select <Finish>, enter
 
+Disable automatic checking for updates and automatic upgrades:
+
+```
+sudo systemctl stop apt-daily.timer
+sudo systemctl disable apt-daily.timer
+sudo systemctl disable apt-daily.service
+sudo systemctl stop apt-daily-upgrade.timer &&\
+sudo systemctl disable apt-daily-upgrade.timer &&\
+sudo systemctl disable apt-daily-upgrade.service &&\
+sudo systemctl daemon-reload
+```
+
 ## Setting up remaining Pis
 
 Make an image of the first pi using Disk Utility. Select "compressed" image type. Then use Etcher to create remaining cards.
