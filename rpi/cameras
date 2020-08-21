@@ -8,10 +8,8 @@ ROOT_NAME=camera
 # automatically configured global variables
 SSH_FILE="$HOME/.ssh/id_rsa"
 SCRIPT=`basename "$0"`
-if [ -z "$cameras" ]; then
+if [ -z "$CAMERAS" ]; then
     CAMERAS="0 1 2 3 4 5 6 7 8 9 10 11"
-else
-    CAMERAS=$cameras
 fi
 
 # check whether we are running under WSL
@@ -24,19 +22,22 @@ function usage() {
     cat << EOF
 ./$SCRIPT
 
-   Control all the cameras. Define `cameras` to control a subset.
+   Control all the cameras. Define CAMERAS to control a subset.
 
     help: print this message
     list: list all the camera ids
     set-hostname <ip> <id>: setup hostname and SSH at <ip> as camera <id>
-    ping: check connection to all cameras
+    ssh-copy-id: copy SSH key from this machine to each camera
+    ping: check connection to all cameras (uses SSH)
     exec: execute command via ssh on all cameras
-    log: display logfile for all cameras
+    status: display info and recent logfile for all cameras
     shutdown: shutdown all cameras
     reboot: reboot all cameras
     update: rsync code and install arducam library on all cameras
-    start: run start.sh <id> on all cameras
-    stop: run killall.sh stream.py on all cameras
+    start: systemctl start vibecheck
+    stop: systemctl stop vibecheck
+    enable: systemctl enable vibecheck
+    disable: systemctl disable vibecheck
 EOF
    exit
 }
@@ -161,7 +162,7 @@ for ID in $CAMERAS; do
 
     case "$1" in
     ping)
-        echo $ID $ADDRESS $AT  online
+        echo $ID $ADDRESS $AT online
     ;;
     exec)
         ssh $AT "${@:2}"
@@ -173,15 +174,16 @@ for ID in $CAMERAS; do
         ssh $AT "/sbin/shutdown --reboot now"
     ;;
     pingtime)
-        HOSTNAME=`hostname`
-        ssh $AT 'RTT=`ping -c4 -i0.2 $HOSTNAME.local | grep rtt` &&\
+        HOSTNAME=$(hostname)
+        ssh $AT 'RTT=`ping -c4 -i0.2 '$HOSTNAME'.local | grep rtt` &&\
             echo '$ADDRESS' $RTT'
     ;;
     status) 
         ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` &&\
             CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` &&\
-            STATUS=`tail -n1 /var/log/vibecheck.err.log` &&\
-            echo '$AT' $STATUS $TEMP $CPU_MEM'
+            ACTIVE=`systemctl is-active vibecheck` &&\
+            ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` &&\
+            echo '$AT' $ACTIVE $TEMP $CPU_MEM $ERR_STATUS'
     ;;
     update)
         rsync -a \

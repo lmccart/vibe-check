@@ -128,7 +128,7 @@ def prep_and_update_mongo(people_db):
     for exp in people_db[faceid]['expressions']:
       people_db[faceid]['avg_expressions'][exp] = people_db[faceid]['expressions'][exp]/(people_db[faceid]['num_people'])
     docs.append(people_db[faceid])
-  print(len(docs))
+  print('Number of docs:', len(docs))
 
   mongo.db['people'].drop() # clear people collection, recreated regularly
   mongo.db['people'].insert_many(docs)
@@ -150,4 +150,4 @@ write_json()
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=True, port=8080)

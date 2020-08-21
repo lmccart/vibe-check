@@ -3,20 +3,28 @@
 
 With virtual environment:
 
-```terminal
-$ # start remote connection to server
-$ . venv/bin/activate
-$ export FLASK_APP=app.py
-$ export FLASK_ENV=development # debug
-$ cd app
-$ python app.py
+```
+. venv/bin/activate
+export FLASK_APP=app.py
+export FLASK_ENV=development # debug
+cd app
+python app.py
 ```
 
 With Anaconda:
 
-```terminal
-$ conda create -n vibecheck-app python=3.7
-$ conda activate vibecheck-app
-$ pip install -r requirements.txt
-$ python app.py
+```
+conda create -y --name vibe-check-app --no-default-packages python=3.7
+conda activate vibe-check-app
+conda install -y flask==1.1.2
+pip install flask_pymongo==2.3.0
+python app.py
+```
+
+Or from the yml file:
+
+```
+conda env create -f environment.yml
+conda activate vibe-check-app
+python app.py
 ```
