@@ -13,7 +13,13 @@ pip install onnx onnxruntime easydict scikit-image sklearn flask flask-pymongo
 Or from the yml file:
 
 ```
-$ conda env create -f environment.yml
-$ conda activate vibe-check-app
-$ python app.py
+conda env create -f environment.yml
+conda activate vibe-check-app
+python app.py
+```
+
+Then download the models:
+
+```
+bash download-models.sh
 ```

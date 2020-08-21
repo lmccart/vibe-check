@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"vibecheck.recognized-photos"}],"uuid":"2948178e87fa4d56987b609d0ac313cf","collectionName":"recognized-photos"}

@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_","ns":"vibecheck.raw"}],"uuid":"86fb80f6124d4a66ae0e20b43df54314","collectionName":"raw"}
