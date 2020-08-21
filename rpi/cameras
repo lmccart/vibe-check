@@ -8,15 +8,15 @@ ROOT_NAME=camera
 # automatically configured global variables
 SSH_FILE="$HOME/.ssh/id_rsa"
 SCRIPT=`basename "$0"`
-if [ -z "$CAMERAS" ]; then
-    CAMERAS="0 1 2 3 4 5 6 7 8 9 10 11"
+if [ -z "$IDS" ]; then
+    IDS="0 1 2 3 4 5 6 7 8 9 10 11"
 fi
 
 function usage() {
     cat << EOF
 ./$SCRIPT
 
-   Control all the cameras. Define CAMERAS to control a subset.
+   Control all the cameras. Define IDS to control a subset.
 
     help: print this message
     list: list all the camera ids
@@ -59,10 +59,10 @@ help)
     usage
 ;;
 list)
-    for ID in $CAMERAS; do
+    for ID in $IDS; do
         ADDRESS=`get_address $ID`
         AT=`get_at $ID`
-        echo $ID $ADDRESS $AT
+        echo $ID $ADDRESS
     done
     exit
 esac
@@ -117,7 +117,7 @@ case "$1" in
 esac
 
 # sequential commands
-for ID in $CAMERAS; do
+for ID in $IDS; do
     AT=`get_at $ID`
     case "$1" in
     ssh-copy-id)
@@ -127,7 +127,7 @@ for ID in $CAMERAS; do
 done
 
 # parallel commands
-for ID in $CAMERAS; do
+for ID in $IDS; do
 {
     ADDRESS=$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
     AT=pi@$ADDRESS
@@ -141,13 +141,19 @@ for ID in $CAMERAS; do
         'exit 0'
     if [ $? -ne 0 ]
     then
-        echo "$ID $ADDRESS $AT offline"
+        ping -W1 -c1 $ADDRESS &> /dev/null
+        if [ $? -ne 0 ]
+        then
+            echo "$ID offline"
+        else
+            echo "$ID online, cannot ssh"
+        fi
         continue
     fi
 
     case "$1" in
     ping)
-        echo $ID $ADDRESS $AT online
+        echo $ID online
     ;;
     exec)
         ssh $AT "${@:2}"
@@ -161,14 +167,15 @@ for ID in $CAMERAS; do
     pingtime)
         HOSTNAME=$(hostname)
         ssh $AT 'RTT=`ping -c4 -i0.2 '$HOSTNAME'.local | grep rtt` &&\
-            echo '$ADDRESS' $RTT'
+            echo '$ID' $RTT'
     ;;
     status) 
         ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` &&\
             CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` &&\
             ACTIVE=`systemctl is-active vibecheck` &&\
+            STATUS=`tail -n1 /var/log/vibecheck.log` &&\
             ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` &&\
-            echo '$AT' $ACTIVE $TEMP $CPU_MEM $ERR_STATUS'
+            echo '$ID' $ACTIVE $TEMP $CPU_MEM $STATUS / $ERR_STATUS'
     ;;
     update)
         rsync -a \
@@ -178,6 +185,7 @@ for ID in $CAMERAS; do
             camera/ $AT:~/$ROOT_NAME/
         rsync -a config/$ID.json $AT:~/$ROOT_NAME/config.json
         ssh $AT 'sudo install -m 644 camera/libarducam_mipicamera.so /usr/lib/'
+        echo $ID 'updated'
     ;;
     enable)
         ssh $AT "systemctl enable vibecheck"

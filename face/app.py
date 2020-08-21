@@ -1,10 +1,13 @@
 import os
 import time
-from flask import Flask, request, send_from_directory, jsonify
-from FaceAnalyzer import FaceAnalyzer
-from flask_pymongo import PyMongo
-import cv2
+import datetime
+import threading
 
+import cv2
+from flask import Flask, request, send_from_directory, jsonify
+from flask_pymongo import PyMongo
+
+from FaceAnalyzer import FaceAnalyzer
 from draw_shapes import draw_circle, draw_rectangle, draw_text
 from imutil import imread, imwrite
 
@@ -21,7 +24,7 @@ analyzer = FaceAnalyzer()
 
 @app.route('/vibecheck')
 def root():
-    return app.send_static_file('index.html')
+    return jsonify({'status': 'ok'})
 
 @app.route('/vibecheck/download/<image>')
 def download(image):
@@ -33,7 +36,8 @@ def upload(camera_id):
     fn = f'{image_dir}/{camera_id}.jpg'#-{millis}.jpg'
     data = request.get_data()
 
-    print(camera_id, time.time())
+    now = datetime.datetime.now().isoformat()
+    print(now, threading.get_ident(), camera_id)
 
     # uncomment to do nothing
     # return jsonify({'filename': fn})
