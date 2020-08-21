@@ -12,12 +12,6 @@ if [ -z "$CAMERAS" ]; then
     CAMERAS="0 1 2 3 4 5 6 7 8 9 10 11"
 fi
 
-# check whether we are running under WSL
-WSL=false
-if grep -qEi "(microsoft|wsl)" /proc/version &> /dev/null ; then
-    WSL=true
-fi
-
 function usage() {
     cat << EOF
 ./$SCRIPT
@@ -52,12 +46,7 @@ function get_address() {
 
 function get_at() {
     ADDRESS=`get_address $1`
-    if $WSL; then
-        IP=`python3 resolve-dnsname.py vibe-check-camera-x.local`
-        echo pi@$IP
-    else
-        echo pi@$ADDRESS
-    fi
+    echo pi@$ADDRESS
 }
 
 if [ $# -eq 0 ]; then
@@ -142,10 +131,6 @@ for ID in $CAMERAS; do
 {
     ADDRESS=$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
     AT=pi@$ADDRESS
-    if $WSL; then
-        IP=`python3 resolve-dnsname.py vibe-check-camera-x.local`
-        AT=pi@$IP
-    fi
     
     # check if the device is online before continuing
     ssh -q \

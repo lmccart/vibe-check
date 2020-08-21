@@ -17,14 +17,3 @@ $ conda env create -f environment.yml
 $ conda activate vibe-check-app
 $ python app.py
 ```
-
-## On Windows
-
-Enable .local domains under WSL:
-
-```
-sudo apt update
-sudo apt install avahi-daemon avahi-utils
-sudo service dbus start
-sudo service avahi-daemon start
-```
