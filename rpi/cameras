@@ -28,10 +28,7 @@ function usage() {
     shutdown: shutdown all cameras
     reboot: reboot all cameras
     update: rsync code and install arducam library on all cameras
-    start: systemctl start vibecheck
-    stop: systemctl stop vibecheck
-    enable: systemctl enable vibecheck
-    disable: systemctl disable vibecheck
+    start/stop/restart/enable/disable: systemctl * vibecheck
 EOF
    exit
 }
@@ -106,10 +103,11 @@ case "$1" in
     status) ;;
     pingtime) ;;
     enable) ;;
+    disable) ;;
     start) ;;
     stop) ;;
+    restart) ;;
     ssh-copy-id) ;;
-    disable) ;;
     *)
         echo "Invalid command"
         usage
@@ -190,14 +188,17 @@ for ID in $IDS; do
     enable)
         ssh $AT "systemctl enable vibecheck"
     ;;
+    disable)
+        ssh $AT "systemctl disable vibecheck"
+    ;;
     start)
         ssh $AT "systemctl start vibecheck"
     ;;
     stop)
         ssh $AT "systemctl stop vibecheck"
     ;;
-    disable)
-        ssh $AT "systemctl disable vibecheck"
+    restart)
+        ssh $AT "systemctl restart vibecheck"
     ;;
     esac
 } &
