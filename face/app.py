@@ -14,6 +14,9 @@ from imutil import imread, imwrite
 image_dir = 'data/images'
 os.makedirs(image_dir, exist_ok=True)
 
+debug_dir = 'data/debug'
+os.makedirs(debug_dir, exist_ok=True)
+
 app = Flask(__name__)
 
 mongo = None
@@ -32,12 +35,13 @@ def download(image):
 
 @app.route('/vibecheck/upload/<camera_id>', methods=['POST'])
 def upload(camera_id):
+    now = datetime.datetime.now().isoformat()
+    print(now, threading.get_ident(), camera_id)
+
+    """
     millis = int(time.time() * 1000)
     fn = f'{image_dir}/{camera_id}.jpg'#-{millis}.jpg'
     data = request.get_data()
-
-    now = datetime.datetime.now().isoformat()
-    print(now, threading.get_ident(), camera_id)
 
     # uncomment to do nothing
     # return jsonify({'filename': fn})
@@ -50,6 +54,11 @@ def upload(camera_id):
     # return jsonify({'filename': fn})
 
     img = imread(fn)
+    """
+
+    fn = 0 if camera_id == '5' else 1
+    img = imread(f'../app/images/{fn}.jpg')
+
     faces = analyzer(img)
 
     canvas = img.copy()
@@ -62,7 +71,7 @@ def upload(camera_id):
         text = f"{face['expression'][expression]*100:0.0f}% {expression}"
         draw_text(canvas, text, (rect[2], rect[1]), scale=1, highlight=0,
             color=(255,255,255), thickness=2, antialias=True)
-    # imwrite('debug.jpg', canvas)
+    imwrite(os.path.join(debug_dir, f'{camera_id}.jpg'), canvas)
 
     if mongo is not None:
         mongo.db['raw'].insert_one({
