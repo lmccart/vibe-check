@@ -62,7 +62,7 @@ def upload(camera_id):
         text = f"{face['expression'][expression]*100:0.0f}% {expression}"
         draw_text(canvas, text, (rect[2], rect[1]), scale=1, highlight=0,
             color=(255,255,255), thickness=2, antialias=True)
-    imwrite('out.jpg', canvas)
+    # imwrite('debug.jpg', canvas)
 
     if mongo is not None:
         mongo.db['raw'].insert_one({

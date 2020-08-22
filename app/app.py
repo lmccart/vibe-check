@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_pymongo import PyMongo
 import json
 from bson.objectid import ObjectId
@@ -17,17 +17,9 @@ class Encoder(json.JSONEncoder):
     else:
       return obj
 
-
-
-
-@app.route('/all0')
-def all0():
-  return render_template('all0.html')
-
-
-@app.route('/all1')
-def all1():
-  return render_template('all1.html')
+@app.route('/images/<image>')
+def send_image(image):
+  return send_from_directory('images', image)
 
 @app.route('/<id>')
 def home_page(id):
