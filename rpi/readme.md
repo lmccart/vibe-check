@@ -1,6 +1,15 @@
-# Raspberry Pi setup
+# Raspberry Pi
 
-## SD card setup
+## Setup with a new computer
+
+```
+./cameras list
+./cameras ssh-copy-id
+```
+
+## Raspberry Pi setup
+
+### SD card setup
 
 1. Download [RaspiOS Lite](https://downloads.raspberrypi.org/raspios_lite_armhf_latest) from [this page](https://www.raspberrypi.org/downloads/raspberry-pi-os/).
 2. Use [Balena Etcher](balena.io/etcher/) to burn the SD card
@@ -24,7 +33,7 @@ network={
 }
 ```
 
-## Setting up the first Pi
+### Setting up the first Pi
 
 First update the firmware:
 
@@ -58,7 +67,19 @@ And enable the camera and I2C with `sudo raspi-config`:
 7. Right arrow key twice to select <Back>, enter
 8. Right arrow key twice to select <Finish>, enter
 
-## Setting up remaining Pis
+Disable automatic checking for updates and automatic upgrades:
+
+```
+sudo systemctl stop apt-daily.timer
+sudo systemctl disable apt-daily.timer
+sudo systemctl disable apt-daily.service
+sudo systemctl stop apt-daily-upgrade.timer &&\
+sudo systemctl disable apt-daily-upgrade.timer &&\
+sudo systemctl disable apt-daily-upgrade.service &&\
+sudo systemctl daemon-reload
+```
+
+### Setting up remaining Pis
 
 Make an image of the first pi using Disk Utility. Select "compressed" image type. Then use Etcher to create remaining cards.
 

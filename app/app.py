@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, send_from_directory
 from flask_pymongo import PyMongo
 import json
 from bson.objectid import ObjectId
@@ -17,17 +17,9 @@ class Encoder(json.JSONEncoder):
     else:
       return obj
 
-
-
-
-@app.route('/all0')
-def all0():
-  return render_template('all0.html')
-
-
-@app.route('/all1')
-def all1():
-  return render_template('all1.html')
+@app.route('/images/<image>')
+def send_image(image):
+  return send_from_directory('images', image)
 
 @app.route('/<id>')
 def home_page(id):
@@ -128,7 +120,7 @@ def prep_and_update_mongo(people_db):
     for exp in people_db[faceid]['expressions']:
       people_db[faceid]['avg_expressions'][exp] = people_db[faceid]['expressions'][exp]/(people_db[faceid]['num_people'])
     docs.append(people_db[faceid])
-  print(len(docs))
+  print('Number of docs:', len(docs))
 
   mongo.db['people'].drop() # clear people collection, recreated regularly
   mongo.db['people'].insert_many(docs)
@@ -150,4 +142,4 @@ write_json()
 
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0", debug=True)
+    app.run(host='0.0.0.0', debug=True, port=8080)

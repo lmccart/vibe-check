@@ -1,4 +1,4 @@
-let image_base = 'http://167.172.202.13/images/';
+let image_base = './images/';
 let id = Number(window.location.pathname.substring(1));
 let leader_id = 1; // lead screen
 let expression;

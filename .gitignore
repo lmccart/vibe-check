@@ -1,6 +1,25 @@
-venv/*
-__pycache__/*
-*/__pycache__/*
+# python & environment
+.vscode
+venv
+__pycache__
+.ipynb_checkpoints
 *.DS_Store
-*/static/data.json
 *.pyc
+
+# placeholder frontend data
+app/images
+app/static/data.json
+
+# neural networks
+face/models
+
+# face analysis
+face/data
+face/debug.jpg
+
+# binary for patching wifi drivers
+rpi/camera/*.bin
+
+# multibrowse app
+automate/multibrowse
+automate/multibrowse-source
