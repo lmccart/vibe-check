@@ -32,6 +32,7 @@ def dlib_crop(img, rect):
 
 class FaceAnalyzer:
     def __init__(self):
+        # switch to http://dlib.net/cnn_face_detector.py.html or blazeface
         self.face_detector = dlib.get_frontal_face_detector()
         self.shape_predictor = dlib.shape_predictor('models/shape_predictor_5_face_landmarks.dat')
         self.face_recognizer = dlib.face_recognition_model_v1('models/dlib_face_recognition_resnet_model_v1.dat')

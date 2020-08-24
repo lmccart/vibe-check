@@ -1,4 +1,11 @@
 import cv2
+import numpy as np
+
+def imdecode(data):
+    if isinstance(data, bytes):
+        data = np.fromstring(data, np.uint8)
+    img = cv2.imdecode(data, cv2.IMREAD_UNCHANGED)
+    return img[...,::-1]
 
 def imread(filename):
     img = cv2.imread(filename, cv2.IMREAD_UNCHANGED)
