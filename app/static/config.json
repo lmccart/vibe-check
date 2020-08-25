@@ -18,14 +18,14 @@
       "color": "#00aeef"
     },
     {
-      "expression": "anger",
-      "label": "anger",
-      "color": "#ec2c3c"
-    },
-    {
       "expression": "disgust",
       "label": "disgust",
       "color": "#603913"
+    },
+    {
+      "expression": "anger",
+      "label": "anger",
+      "color": "#ec2c3c"
     },
     {
       "expression": "contempt",

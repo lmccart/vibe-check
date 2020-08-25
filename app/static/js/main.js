@@ -7,12 +7,13 @@ let screen_height = window.innerHeight;
 let mask_size = 3840;
 let mask_zoom = 10.0;
 
+let rush_debug = true;
 let speed = 1;
 let animation_duration = 3000 / speed;
 let zoomed_in_pause_duration = 5000 / speed;
 let zoomed_out_pause_duration = 3000 / speed;
 let mask_zoom_duration = 1000 / speed;
-let face_x, face_y, start_x;
+let stored_face_x, stored_face_y, stored_start_x;
 let blink_interval;
 let screen_off = id * 100 / speed;
 
@@ -38,46 +39,35 @@ let update = (ready) => {
   $.get('/static/data.json', data => {
     console.log(data[expression]);
     let expression_data = data[expression];
-    $('#photo').attr('src', image_base+expression_data.photo_path);
+    let url = image_base+expression_data.photo_path;
+    if (url !== $('#photo').attr('src')) {
+      $('#photo').attr('src', url);
+      console.log('change!');
+    }
     $('#expression').text(label);
 
     let face_w = expression_data.rect[2] * photo_ratio;
     let face_h = expression_data.rect[3] * photo_ratio;
-    face_x = expression_data.rect[0] * photo_ratio;
-    face_y = expression_data.rect[1] * photo_ratio;
+    stored_face_x = expression_data.rect[0] * photo_ratio;
+    stored_face_y = expression_data.rect[1] * photo_ratio;
     
     // check which side of photo to start from
-    start_x = face_x < photo_width * 0.5 ? -photo_width + screen_width : 0;
+    stored_start_x = stored_face_x < photo_width * 0.5 ? -photo_width + screen_width : 0;
 
     if (ready) start();
   });
 };
 
 let start = () => {
-  reset();
-  let totalTime = zoomed_in_pause_duration + zoomed_out_pause_duration + 2 * animation_duration;
-  let millis = new Date().getTime();
-  let rem = millis % totalTime;
-  let diff = totalTime - rem + screen_off;
-  if (diff < 1000) diff += totalTime;
-  setTimeout(function() {
-    zoomIn();
-    zoom_interval = setInterval(zoomIn, totalTime);
-  }, diff);
-  console.log(diff);
-}
-
-// reset photo and mask
-let reset = () => {
-
+  
+  // reset
   blink(false);
-
   $( '#photo' ).css('height', '100%');
-  $( '#photo' ).css('left', start_x);
+  $( '#photo' ).css('left', stored_start_x);
   $( '#mask' ).css('width', mask_size * mask_zoom);
   $( '#mask' ).css('height', mask_size * mask_zoom);
-  $( '#mask' ).css('left', (face_x - mask_size * mask_zoom * 0.5));
-  $( '#mask' ).css('top', (face_y - mask_size * mask_zoom * 0.5));
+  $( '#mask' ).css('left', (stored_face_x - mask_size * mask_zoom * 0.5));
+  $( '#mask' ).css('top', (stored_face_y - mask_size * mask_zoom * 0.5));
   $( '#label').hide();
 
   $( '#mask' ).show();
@@ -86,7 +76,19 @@ let reset = () => {
   $( '#label').stop();
   $( '#expression').stop();
 
-};
+
+  let totalTime = zoomed_in_pause_duration + zoomed_out_pause_duration + 2 * animation_duration;
+  let millis = new Date().getTime();
+  let rem = millis % totalTime;
+  let diff = totalTime - rem + screen_off;
+  if (diff < 1000) diff += totalTime;
+  if (rush_debug) diff = 500;
+  setTimeout(function() {
+    zoomIn();
+    zoom_interval = setInterval(zoomIn, totalTime);
+  }, diff);
+  console.log(diff);
+}
 
 // slide photo to final position
 let slide = (x) => {
@@ -107,15 +109,16 @@ let slide = (x) => {
 
 // zoom into face
 let zoomIn = () => {
+  update();
   blink(true);
 
-  let target_x = slide(face_x);
+  let target_x = slide(stored_face_x);
   $( '#mask' ).delay(zoomed_out_pause_duration + animation_duration - mask_zoom_duration).animate({
     width: mask_size,
     height: mask_size,
     left: target_x - mask_size * 0.5,
-    top: face_y - mask_size * 0.5,
-  }, mask_zoom_duration, 'swing', zoomOut);
+    top: stored_face_y - mask_size * 0.5,
+  }, mask_zoom_duration, 'swing', function() { zoomOut(stored_face_x, stored_face_y, stored_start_x); });
   
   setTimeout(function() { 
     blink(false);
@@ -126,7 +129,7 @@ let zoomIn = () => {
 }
 
 // zoom out of face
-let zoomOut = () => {
+let zoomOut = (face_x, face_y, start_x) => {
   $( '#photo' ).delay(zoomed_in_pause_duration - screen_off).animate({
     left: start_x
   }, animation_duration, 'swing');
@@ -143,8 +146,6 @@ let zoomOut = () => {
     $('#expression').hide();
     $('#expression').css('margin-left', 0);
   }, zoomed_in_pause_duration);
-
-  update();
 }
 
 let blink = (val) => {
