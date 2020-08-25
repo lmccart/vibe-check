@@ -43,7 +43,7 @@ class FaceAnalyzer:
     def __call__(self, img, downsample=2):
         height, width = img.shape[:2]
         img_small = cv2.resize(img, (width//downsample, height//downsample))
-        rects = self.face_detector(img_small, 0) # 500ms
+        rects = self.face_detector(img_small, 0) # 500ms on CPU # 120ms on GPU
         if len(rects) == 0:
             return []
         shapes = [self.shape_predictor(img_small, e) for e in rects] # 2ms

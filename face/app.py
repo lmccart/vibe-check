@@ -45,7 +45,11 @@ def upload(camera_id):
     now = datetime.datetime.now().isoformat()
     print(now, threading.get_ident(), camera_id)
 
-    # data = request.get_data() # get bytes from request
+    data = request.get_data() # get bytes from request
+
+    with open('debug.jpg', 'wb') as f:
+        f.write(data)
+    return jsonify({})
 
     # read placeholder from disk
     with open('../app/images/0.jpg', 'rb') as f:

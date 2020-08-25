@@ -19,11 +19,12 @@ function usage() {
    Control all the cameras. Define IDS to control a subset.
 
     help: print this message
-    list: list all the camera ids
+    list: list all the camera ids and addresses
     set-hostname <ip> <id>: setup hostname and SSH at <ip> as camera <id>
     ssh-copy-id: copy SSH key from this machine to each camera
     ping: check connection to all cameras (uses SSH)
     exec: execute command via ssh on all cameras
+    ssh <id>: helper to ssh into specific camera
     status: display info and recent logfile for all cameras
     shutdown: shutdown all cameras
     reboot: reboot all cameras
@@ -34,15 +35,18 @@ EOF
 }
 
 function get_hostname() {
-    echo $HOSTNAME_PREFIX$1
+    ID=$1
+    echo $HOSTNAME_PREFIX$ID
 }
 
 function get_address() {
-    echo `get_hostname $1`$HOSTNAME_SUFFIX
+    ID=$1
+    echo `get_hostname $ID`$HOSTNAME_SUFFIX
 }
 
 function get_at() {
-    ADDRESS=`get_address $1`
+    ID=$1
+    ADDRESS=`get_address $ID`
     echo pi@$ADDRESS
 }
 
@@ -78,10 +82,10 @@ set-hostname)
     fi
 
     IP=$2
-    NUMBER=$3
+    ID=$3
     AT=pi@$IP
     ssh-copy-id -i $SSH_FILE $AT
-    HOSTNAME=$HOSTNAME_PREFIX$NUMBER
+    HOSTNAME=$HOSTNAME_PREFIX$ID
     # it takes four separate commands to fully set the hostname
     # "sudo: unable to resolve host..." is not an error, just intermediate
     # final command restarts the mdns server
@@ -90,6 +94,13 @@ set-hostname)
         sudo hostname $HOSTNAME &&\
         echo $HOSTNAME | sudo tee /etc/hostname &&\
         sudo systemctl restart avahi-daemon"
+    exit
+;;
+ssh)
+    ID=$2
+    AT=`get_at $ID`
+    ssh $AT
+    exit
 ;;
 esac
 

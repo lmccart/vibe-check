@@ -33,7 +33,8 @@ config = {
 with open('config.json') as f:
     config.update(json.load(f))
 
-host = 'hek-dual-gpu.local'
+# host = 'hek-dual-gpu.local'
+host = 'iyoiyo-gpu.local'
 url = 'http://' + host + ':5000/vibecheck/upload/' + str(config['id'])
 jpeg_quality = 90
 width, height = 4656, 3496

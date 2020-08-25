@@ -58,17 +58,22 @@ def apply_lut(img16, img8, lut):
             img8_flat[i][j] = lut[j][img16_flat[i][j]]
         
 class RawProcessor:
-    def __init__(self, width, height, curves, mode='bgr'):
+    """For 16-bit output leave curves=None."""
+    def __init__(self, width, height, curves=None, mode='bgr'):
         self.w = width
         self.h = height
         self.img16_bayer = np.zeros((height*width), np.uint16)
         self.img16 = np.zeros((height,width,3), np.uint16)
-        self.img8_lut = np.zeros((height,width,3), np.uint8)
-        self.lut = curves_to_lut(curves, in_range=1024)
+        self.lut = None
+        if curves is not None:
+            self.lut = curves_to_lut(curves, in_range=1024)
+            self.img8_lut = np.zeros((height,width,3), np.uint8)
         self.mode = cv2.COLOR_BAYER_RG2BGR if mode == 'bgr' else cv2.COLOR_BAYER_RG2RGB
         
     def __call__(self, data):
         remove_padding_and_unpack_fast(data, self.w, self.h, 10, self.img16_bayer)
         cv2.cvtColor(self.img16_bayer.reshape(self.h, self.w), self.mode, self.img16)
+        if self.lut is None:
+            return self.img16
         apply_lut(self.img16, self.img8_lut, self.lut)
         return self.img8_lut
