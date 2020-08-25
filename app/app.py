@@ -14,15 +14,5 @@ def send_image(camera_id, image):
 def home_page(id):
   return render_template('index.html')
 
-@app.route('/get_meta')
-def get_meta():
-  meta = client.vibecheck['meta'].find({})[0]
-  del meta['_id']
-  return jsonify(meta)
-  
-@app.route('/get_expressions')
-def get_expressions():
-  return jsonify(client.vibecheck['meta'].find({})[0].get('expressions'))
-
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=8080)

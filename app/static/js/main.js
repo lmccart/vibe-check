@@ -3,6 +3,7 @@ let id = Number(window.location.pathname.substring(1));
 let expression, label;
 let photo_width, photo_height, photo_ratio;
 let screen_width = window.innerWidth;
+let screen_height = window.innerHeight;
 let mask_size = 3840;
 let mask_zoom = 10.0;
 
@@ -15,10 +16,10 @@ let face_x, face_y, start_x;
 let blink_interval;
 let screen_off = id * 100 / speed;
 
-let getMeta = () => {
-  $.get('/get_meta', data => {
+let getConfig = () => {
+  $.get('/static/config.json', data => {
     console.log(data)
-    photo_ratio = window.innerHeight/data.photo_height;
+    photo_ratio = screen_height/data.photo_height;
     photo_width = data.photo_width * photo_ratio;
     photo_height = data.photo_height * photo_ratio;
     expression = data.expressions[id].expression;
@@ -31,7 +32,7 @@ let getMeta = () => {
     update(true);
   });  
 }
-getMeta();
+getConfig();
 
 let update = (ready) => {
   $.get('/static/data.json', data => {

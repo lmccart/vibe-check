@@ -3,7 +3,6 @@ body, html, #wrapper {
   overflow: hidden;
 }
 
-
 #mask {
   position: absolute;
   z-index: 1;
@@ -33,6 +32,7 @@ img {
   left: 0;
   z-index: 3;
   text-align: center;
+  margin-top: 60vh;
 }
 
 #label {
@@ -41,11 +41,10 @@ img {
   padding: 0 0.25em;
   background: black;
   color: white;
-  font-size: 8vw;
+  font-size: 8.5vw;
   font-family: botanika-mono-web, monospace;
   font-weight: 600;
   text-transform: uppercase;
-  color: #ff0039;
 }
 
 #expression {
@@ -53,7 +52,7 @@ img {
   margin: 2em 0 0 0;
   padding: 0 0.2em;
   background: black;
-  font-size: 12vw;
+  font-size: 14vw;
   font-weight: 600;
   font-style: italic;
   font-family: botanika-mono-web, monospace;

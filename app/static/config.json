@@ -1,0 +1,41 @@
+{
+  "photo_width": 4656,
+  "photo_height": 3496,
+  "expressions": [
+    {
+      "expression": "happiness",
+      "label": "glee",
+      "color": "#faa437"
+    },
+    {
+      "expression": "surprise",
+      "label": "surprise",
+      "color": "#ffffff"
+    },
+    {
+      "expression": "sadness",
+      "label": "sadness",
+      "color": "#00aeef"
+    },
+    {
+      "expression": "anger",
+      "label": "anger",
+      "color": "#ec2c3c"
+    },
+    {
+      "expression": "disgust",
+      "label": "disgust",
+      "color": "#603913"
+    },
+    {
+      "expression": "contempt",
+      "label": "contempt",
+      "color": "#424242"
+    },
+    {
+      "expression": "neutral",
+      "label": "calm",
+      "color": "#ffffff"
+    }
+  ]
+}
