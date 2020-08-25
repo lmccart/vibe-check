@@ -30,6 +30,24 @@ def dlib_crop(img, rect):
     t,b,l,r = (rect.top(), rect.bottom(), rect.left(), rect.right())
     return img[t:b,l:r]
 
+def tblr_to_xywh(tblr):
+    t,b,l,r = tblr
+    return [
+        (l + r) * 0.5,
+        (t + b) * 0.5,
+        (r - l),
+        (b - t)
+    ]
+
+def xywh_to_tblr(xywh):
+    x,y,w,h = xywh
+    return [
+        y - (h / 2),
+        y + (h / 2),
+        x - (w / 2),
+        x + (w / 2)
+    ]
+
 class FaceAnalyzer:
     def __init__(self):
         # switch to http://dlib.net/cnn_face_detector.py.html or blazeface
@@ -55,6 +73,10 @@ class FaceAnalyzer:
         descriptors = [np.asarray(e).astype(float).tolist() for e in descriptors]
         expressions = [e.reshape(-1).astype(float) for e in expressions]
         expressions = [dict(zip(self.expression_classes, e)) for e in expressions]
+
+        # switch from tblr to xywh
+        rects = map(tblr_to_xywh, rects)
+
         faces = []
         keys = ('rect', 'shape', 'descriptor', 'expression')
         for values in zip(rects, shapes, descriptors, expressions):

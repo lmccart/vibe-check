@@ -34,7 +34,7 @@ with open('config.json') as f:
     config.update(json.load(f))
 
 # always start with high exposure
-config['exposure'] = 1600
+config['exposure'] = 12800
 
 width, height = 4656, 3496
 processor = RawProcessor(width, height, mode='bgr')

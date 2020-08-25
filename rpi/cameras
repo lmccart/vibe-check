@@ -179,11 +179,11 @@ for ID in $IDS; do
             echo '$ID' $RTT'
     ;;
     status) 
-        ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` &&\
-            CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` &&\
-            ACTIVE=`systemctl is-active vibecheck` &&\
-            STATUS=`tail -n1 /var/log/vibecheck.log` &&\
-            ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` &&\
+        ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` ;\
+            CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` ;\
+            ACTIVE=`systemctl is-active vibecheck` ;\
+            STATUS=`tail -n1 /var/log/vibecheck.log` ;\
+            ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` ;\
             echo '$ID' $ACTIVE $TEMP $CPU_MEM $STATUS / $ERR_STATUS'
     ;;
     update)

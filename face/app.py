@@ -7,9 +7,12 @@ import cv2
 from flask import Flask, request, send_from_directory, jsonify
 from flask_pymongo import PyMongo
 
-from FaceAnalyzer import FaceAnalyzer
+from FaceAnalyzer import FaceAnalyzer, xywh_to_tblr
 from draw_shapes import draw_circle, draw_rectangle, draw_text
 from imutil import imread, imwrite, imdecode
+
+preview_only = False
+# preview_only = True
 
 image_dir = '../app/images'
 os.makedirs(image_dir, exist_ok=True)
@@ -47,13 +50,14 @@ def upload(camera_id):
 
     data = request.get_data() # get bytes from request
 
-    with open('debug.jpg', 'wb') as f:
-        f.write(data)
-    return jsonify({})
+    if preview_only:
+        with open(f'data/images/{camera_id}.jpg', 'wb') as f:
+            f.write(data)
+        return jsonify({})
 
-    # read placeholder from disk
-    with open('../app/images/0.jpg', 'rb') as f:
-        data = f.read()
+    # # read placeholder from disk
+    # with open('../app/images/0.jpg', 'rb') as f:
+    #     data = f.read()
 
     img = imdecode(data) # decode jpg to numpy
     faces = analyzer(img)
@@ -62,7 +66,8 @@ def upload(camera_id):
     if debug_dir is not None:
         canvas = img.copy()
         for face in faces:
-            rect = face['rect']
+            rect = xywh_to_tblr(face['rect'])
+            rect = list(map(int, rect))
             draw_rectangle(canvas, rect, stroke=255)
             for point in face['shape']:
                 draw_circle(canvas, point, r=4, fill=(255,255,255))
@@ -72,14 +77,16 @@ def upload(camera_id):
                 color=(255,255,255), thickness=2, antialias=True)
         imwrite(os.path.join(debug_dir, f'{camera_id}.jpg'), canvas)
 
-    if len(faces) > 0:
+    # only save photos where there are 2 or more people
+    # otherwise we cannot analyze any relationships 
+    if len(faces) >= 2:
         # save the image to disk
-        cur_dir = os.path.join(image_dir, camera_id)
-        os.makedirs(cur_dir, exist_ok=True)
         millis = int(time.time() * 1000)
-        fn = os.path.join(cur_dir, str(millis) + '.jpg')
-        print('saving to', fn)
-        with open(fn, 'wb') as f:
+        fn = os.path.join(camera_id, str(millis) + '.jpg')
+        os.makedirs(os.path.join(image_dir, camera_id), exist_ok=True)
+        # print('saving to', fn)
+        full_path = os.path.join(image_dir, fn)
+        with open(full_path, 'wb') as f:
             f.write(data)
         
         if mongo is not None:
