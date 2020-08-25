@@ -20,6 +20,9 @@ face/debug.jpg
 # binary for patching wifi drivers
 rpi/camera/*.bin
 
+# raw reference images for color correction
+rpi/reference
+
 # multibrowse app
 automate/multibrowse
 automate/multibrowse-source
