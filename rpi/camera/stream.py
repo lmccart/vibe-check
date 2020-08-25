@@ -21,7 +21,7 @@ from requests.exceptions import ConnectionError
 # default configuration
 config = {
     'id': 0,
-    'exposure': 1600,
+    'exposure': 12800,
     'focus': 100,
     'curves': [
         [[0, 16], [127, 110], [255, 255]],
@@ -33,8 +33,8 @@ config = {
 with open('config.json') as f:
     config.update(json.load(f))
 
-# host = 'hek-dual-gpu.local'
-host = 'iyoiyo-gpu.local'
+host = 'hek-dual-gpu.local'
+# host = 'iyoiyo-gpu.local'
 url = 'http://' + host + ':5000/vibecheck/upload/' + str(config['id'])
 jpeg_quality = 90
 width, height = 4656, 3496

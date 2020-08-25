@@ -52,13 +52,16 @@ for e in raw_data:
 # client.vibecheck['recognized-photos'].drop()
 # client.vibecheck['recognized-photos'].insert_many(recognized_photos)
 
-
 # main method, analyzes each entry in recognized-photos, builds db of people, updates mongo
 def update_db():
   people_db = {}
   
   for document in recognized_photos:
     people = document.get('people')
+
+    # do not analyze photos with less than 2 people
+    if len(people) < 2:
+      continue
 
     # get sum of expressions in photo
     total_expressions = sum_photo_expressions(people)

@@ -8,6 +8,7 @@ __pycache__
 
 # placeholder frontend data
 app/images
+app/images-backup
 app/static/data.json
 
 # neural networks
@@ -26,3 +27,6 @@ rpi/reference
 # multibrowse app
 automate/multibrowse
 automate/multibrowse-source
+
+# don't save backup database
+database/backup

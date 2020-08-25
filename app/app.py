@@ -6,9 +6,9 @@ app = Flask(__name__)
 # connect to mongo
 client = MongoClient()
 
-@app.route('/images/<image>')
-def send_image(image):
-  return send_from_directory('images', image)
+@app.route('/images/<camera_id>/<image>')
+def send_image(camera_id, image):
+  return send_from_directory(f'images/{camera_id}', image)
 
 @app.route('/<id>')
 def home_page(id):
