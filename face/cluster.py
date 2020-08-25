@@ -54,6 +54,8 @@ for e in raw_data:
 
 
 # main method, analyzes each entry in recognized-photos, builds db of people, updates mongo
+all_expressions = []
+
 def update_db():
   people_db = {}
   
@@ -73,6 +75,9 @@ def update_db():
       max_rects = {}
       max_timestamp = {}
       for exp in person.get('expressions'):
+        if len(all_expressions) == 0:
+          all_expressions = person.get('expressions')
+
         val = total_expressions[exp] - person.get('expressions')[exp]
         if exp in expressions:
           expressions[exp] += val
@@ -143,15 +148,15 @@ def prep_and_update_mongo(people_db):
 
 # writes json file from mongo
 def write_json():
-  expressions = client.vibecheck['meta'].find({})[0].get('expressions')
   output = {}
-  for e in expressions:
+  for e in all_expressions:
     exp = e.get('expression')
     max_exp = client.vibecheck['people'].find().sort('avg_expressions.'+exp, -1)[0]
     output[exp] = { 'faceid': max_exp['faceid'], 'average': max_exp['avg_expressions'][exp], 'photo_path': max_exp['max_photos'][exp], 'rect': max_exp['max_rects'][exp], 'timestamp': max_exp['max_timestamp'][exp]}
   with open('../app/static/data.json', 'w', encoding='utf-8') as f:
     json.dump(output, f, cls=Encoder, indent=2)
 
+print('CLUSTER')
 
 update_db()
 write_json()
