@@ -1,27 +1,31 @@
 let image_base = './images/';
 let id = Number(window.location.pathname.substring(1));
-let leader_id = 1; // lead screen
-let expression;
+let expression, label;
 let photo_width, photo_height, photo_ratio;
 let screen_width = window.innerWidth;
 let mask_size = 3840;
 let mask_zoom = 10.0;
-let animation_duration = 5000;
-let zoomed_in_pause_duration = 12000;
-let zoomed_out_pause_duration = 3000;
+
+let speed = 1;
+let animation_duration = 3000 / speed;
+let zoomed_in_pause_duration = 5000 / speed;
+let zoomed_out_pause_duration = 3000 / speed;
+let mask_zoom_duration = 1000 / speed;
 let face_x, face_y, start_x;
 let blink_interval;
+let screen_off = id * 100 / speed;
 
 let getMeta = () => {
   $.get('/get_meta', data => {
     console.log(data)
-    photo_width = data.photo_width;
-    photo_height = data.photo_height;
-    photo_ratio = window.innerHeight/photo_height;
-    expression = data.expressions[id];
+    photo_ratio = window.innerHeight/data.photo_height;
+    photo_width = data.photo_width * photo_ratio;
+    photo_height = data.photo_height * photo_ratio;
+    expression = data.expressions[id].expression;
+    label = data.expressions[id].label;
   
-    $( '#label' ).css('color', data.colors[id]);
-    $( '#expression' ).css('color', data.colors[id]);
+    $( '#label' ).css('color', data.expressions[id].color);
+    $( '#expression' ).css('color', data.expressions[id].color);
     $( '#mask' ).attr('src', '/static/mask-'+expression+'.png');
     
     update(true);
@@ -34,7 +38,6 @@ let update = (ready) => {
     console.log(data[expression]);
     let expression_data = data[expression];
     $('#photo').attr('src', image_base+expression_data.photo_path);
-    let label = expression === 'happiness' ? 'glee' : expression;
     $('#expression').text(label);
 
     let face_w = expression_data.rect[2] * photo_ratio;
@@ -43,7 +46,7 @@ let update = (ready) => {
     face_y = expression_data.rect[1] * photo_ratio;
     
     // check which side of photo to start from
-    start_x = face_x < photo_width * photo_ratio * 0.5 ? -photo_width * photo_ratio + screen_width : 0;
+    start_x = face_x < photo_width * 0.5 ? -photo_width + screen_width : 0;
 
     if (ready) start();
   });
@@ -54,7 +57,7 @@ let start = () => {
   let totalTime = zoomed_in_pause_duration + zoomed_out_pause_duration + 2 * animation_duration;
   let millis = new Date().getTime();
   let rem = millis % totalTime;
-  let diff = totalTime - rem;
+  let diff = totalTime - rem + screen_off;
   if (diff < 1000) diff += totalTime;
   setTimeout(function() {
     zoomIn();
@@ -88,10 +91,13 @@ let reset = () => {
 let slide = (x) => {
   let half = screen_width * 0.5;
   let target_x = half + (Math.random() - 0.5) * screen_width * 0.2;
-  let left_diff = photo_width * photo_ratio - x;
+  let left_diff = photo_width - x;
   if (target_x > x) target_x = x;
   else if (left_diff < half) target_x = target_x + (half - left_diff);
   let offset = target_x - x;
+  // console.log(offset, screen_width - photo_width)
+  offset = Math.max(offset, screen_width - photo_width);
+  offset = Math.min(offset, 0);
   $( '#photo' ).delay(zoomed_out_pause_duration).animate({
     left: offset
   }, animation_duration, 'swing');
@@ -103,26 +109,27 @@ let zoomIn = () => {
   blink(true);
 
   let target_x = slide(face_x);
-  $( '#mask' ).delay(zoomed_out_pause_duration).animate({
+  $( '#mask' ).delay(zoomed_out_pause_duration + animation_duration - mask_zoom_duration).animate({
     width: mask_size,
     height: mask_size,
     left: target_x - mask_size * 0.5,
     top: face_y - mask_size * 0.5,
-  }, animation_duration, 'swing', zoomOut);
+  }, mask_zoom_duration, 'swing', zoomOut);
   
   setTimeout(function() { 
     blink(false);
     $('#label').show();
     $('#expression').css('margin-left', ((Math.random() > 0.5 ? 1 : -1) * 1.8) + 'em');
+    $('#expression').show();
   }, zoomed_out_pause_duration + animation_duration);
 }
 
 // zoom out of face
 let zoomOut = () => {
-  $( '#photo' ).delay(zoomed_in_pause_duration).animate({
+  $( '#photo' ).delay(zoomed_in_pause_duration - screen_off).animate({
     left: start_x
   }, animation_duration, 'swing');
-  $( '#mask' ).delay(zoomed_in_pause_duration).animate({
+  $( '#mask' ).delay(zoomed_in_pause_duration - screen_off).animate({
     width: mask_size * mask_zoom,
     height: mask_size * mask_zoom,
     left: (face_x - mask_size * mask_zoom * 0.5),
@@ -130,8 +137,9 @@ let zoomOut = () => {
   }, animation_duration, 'swing');
 
   setTimeout(function() { 
-    blink(true);
+    // blink(true);
     $('#label').hide();
+    $('#expression').hide();
     $('#expression').css('margin-left', 0);
   }, zoomed_in_pause_duration);
 
@@ -146,6 +154,6 @@ let blink = (val) => {
         $( '#expression').show();
       else
         $( '#expression').hide();
-    }, 1000);
+    }, 700 / speed);
   }
 };
