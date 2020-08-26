@@ -1,10 +1,6 @@
 from flask import Flask, render_template, request, jsonify, send_from_directory
-from pymongo import MongoClient
 
 app = Flask(__name__)
-
-# connect to mongo
-client = MongoClient()
 
 @app.route('/images/<camera_id>/<image>')
 def send_image(camera_id, image):
