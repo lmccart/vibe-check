@@ -36,7 +36,8 @@ let getConfig = () => {
 getConfig();
 
 let update = (ready) => {
-  $.get('/static/data.json', data => {
+  let now = new Date().getTime();
+  $.get('/static/data.json?'+now, data => {
     console.log(data[expression]);
     let expression_data = data[expression];
     let url = image_base+expression_data.photo_path;
