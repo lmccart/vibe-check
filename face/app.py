@@ -84,7 +84,7 @@ def upload(camera_id):
         millis = int(time.time() * 1000)
         fn = os.path.join(camera_id, str(millis) + '.jpg')
         os.makedirs(os.path.join(image_dir, camera_id), exist_ok=True)
-        # print('saving to', fn)
+        print('saving to', fn)
         full_path = os.path.join(image_dir, fn)
         with open(full_path, 'wb') as f:
             f.write(data)
@@ -96,7 +96,7 @@ def upload(camera_id):
                 'photo_path': fn,
                 'faces': faces
             }
-            print('writing to db', repr(record)[:120], '...')
+            # print('writing to db', repr(record)[:120], '...')
             mongo.db['raw'].insert_one(record)
 
     return jsonify(faces)

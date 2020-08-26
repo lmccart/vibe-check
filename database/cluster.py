@@ -23,6 +23,8 @@ def recognize():
         raw_data.append(e)
         descriptors.extend([face['descriptor'] for face in e['faces']])
 
+    print('total descriptors:', len(descriptors))
+
     # cluster all the labels (can take 15 seconds)
     clusterer = hdbscan.HDBSCAN(
         min_cluster_size=2,
@@ -95,7 +97,8 @@ def update_db(recognized_photos):
                     max_timestamp[exp] = document.get('created')
 
             # add or update entry in people_db
-            update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, max_rects, max_timestamp, num_people)
+            update_person_entry(people_db, faceid, expressions, max_expressions,
+                max_photos, max_rects, max_timestamp, num_people)
 
     # enter all into mongodb
     prep_and_update_mongo(people_db)
@@ -143,7 +146,7 @@ def prep_and_update_mongo(people_db):
         for exp in people_db[faceid]['expressions']:
             people_db[faceid]['avg_expressions'][exp] = people_db[faceid]['expressions'][exp]/(people_db[faceid]['num_people'])
         docs.append(people_db[faceid])
-    print('Number of docs:', len(docs))
+    print('total people:', len(docs))
 
     client.vibecheck['people'].drop() # clear people collection, recreated regularly
     client.vibecheck['people'].insert_many(docs)
@@ -154,11 +157,15 @@ def write_json(all_expressions):
     for exp in all_expressions:
         # exp = e.get('expression')
         max_exp = client.vibecheck['people'].find().sort('avg_expressions.'+exp, -1)[0]
-        output[exp] = { 'faceid': max_exp['faceid'], 'average': max_exp['avg_expressions'][exp], 'photo_path': max_exp['max_photos'][exp], 'rect': max_exp['max_rects'][exp], 'timestamp': max_exp['max_timestamp'][exp]}
+        output[exp] = {
+            'faceid': max_exp['faceid'],
+            'average': max_exp['avg_expressions'][exp],
+            'photo_path': max_exp['max_photos'][exp],
+            'rect': max_exp['max_rects'][exp],
+            'timestamp': max_exp['max_timestamp'][exp]
+        }
     with open('../app/static/data.json', 'w', encoding='utf-8') as f:
         json.dump(output, f, cls=Encoder, indent=2)
-
-print('CLUSTER')
 
 recognized_photos = recognize()
 all_expressions = update_db(recognized_photos)

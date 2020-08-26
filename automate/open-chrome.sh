@@ -1,4 +1,4 @@
-sudo killall chrome
+killall chrome
 DISPLAY=:0.0 ./multibrowse \
     http://localhost:8080/0 \
     http://localhost:8080/1 \

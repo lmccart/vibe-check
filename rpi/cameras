@@ -1,16 +1,6 @@
 #!/bin/bash -m
 
-# script configuration
-HOSTNAME_PREFIX=vibe-check-camera-
-HOSTNAME_SUFFIX=.local
-ROOT_NAME=camera
-
-# automatically configured global variables
-SSH_FILE="$HOME/.ssh/id_rsa"
-SCRIPT=`basename "$0"`
-if [ -z "$IDS" ]; then
-    IDS="0 1 2 3 4 5 6 7 8 9 10 11"
-fi
+source camera-functions.sh
 
 function usage() {
     cat << EOF
@@ -25,6 +15,7 @@ function usage() {
     ping: check connection to all cameras (uses SSH)
     exec: execute command via ssh on all cameras
     ssh <id>: helper to ssh into specific camera
+    download <path>: download directory from each camera
     status: display info and recent logfile for all cameras
     shutdown: shutdown all cameras
     reboot: reboot all cameras
@@ -32,22 +23,6 @@ function usage() {
     start/stop/restart/enable/disable: systemctl * vibecheck
 EOF
    exit
-}
-
-function get_hostname() {
-    ID=$1
-    echo $HOSTNAME_PREFIX$ID
-}
-
-function get_address() {
-    ID=$1
-    echo `get_hostname $ID`$HOSTNAME_SUFFIX
-}
-
-function get_at() {
-    ID=$1
-    ADDRESS=`get_address $ID`
-    echo pi@$ADDRESS
 }
 
 if [ $# -eq 0 ]; then
@@ -119,6 +94,7 @@ case "$1" in
     stop) ;;
     restart) ;;
     ssh-copy-id) ;;
+    download) ;;
     *)
         echo "Invalid command"
         usage
@@ -210,6 +186,17 @@ for ID in $IDS; do
     ;;
     restart)
         ssh $AT "systemctl restart vibecheck"
+    ;;
+    download)
+        if [ "$#" -ne 2 ]; then
+            echo "Example: ./$SCRIPT download /home/pi/reference/"
+            usage
+        fi
+
+        REMOTE_DIR=$2
+        LOCAL_DIR=download/$ID
+        mkdir -p $LOCAL_DIR
+        rsync -a $AT:$REMOTE_DIR $LOCAL_DIR
     ;;
     esac
 } &
