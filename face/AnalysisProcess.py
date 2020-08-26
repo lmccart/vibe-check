@@ -35,9 +35,9 @@ class AnalysisProcess():
         with open(full_path, 'wb') as f:
             f.write(data)
 
-        # record = {
-        #     'camera_id': camera_id,
-        #     'photo_path': fn,
-        #     'faces': faces
-        # }
-        # self.mongo.vibecheck.raw.insert_one(record)
+        record = {
+            'camera_id': camera_id,
+            'photo_path': fn,
+            'faces': faces
+        }
+        self.mongo.vibecheck.raw.insert_one(record)
