@@ -2,6 +2,7 @@ import dlib
 import onnxruntime as ort
 import cv2
 import numpy as np
+from imutil import safe_crop
 
 def rgb_to_gray(img):
     return img.mean(axis=-1)[...,np.newaxis].repeat(3,-1)
@@ -27,8 +28,8 @@ def resize_shape(shape, upsample):
     return (np.asarray(parts) * upsample).astype(int).tolist()
     
 def dlib_crop(img, rect):
-    t,b,l,r = (rect.top(), rect.bottom(), rect.left(), rect.right())
-    return img[t:b,l:r]
+    tblr = (rect.top(), rect.bottom(), rect.left(), rect.right())
+    return safe_crop(img, tblr, fill=128)
 
 def tblr_to_xywh(tblr):
     t,b,l,r = tblr
