@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+
+cd ~/Documents/vibe-check/automate
+
 killall chrome
 DISPLAY=:0.0 ./multibrowse \
     http://localhost:8080/0 \
