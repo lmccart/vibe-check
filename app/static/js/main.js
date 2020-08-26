@@ -11,11 +11,11 @@ let rush_debug = false;
 let speed = 1;
 let animation_duration = 3000 / speed;
 let zoomed_in_pause_duration = 4000 / speed;
-let zoomed_out_pause_duration = 4000 / speed;
+let zoomed_out_pause_duration = 5000 / speed;
 let mask_zoom_duration = 1000 / speed;
 let stored_face_x, stored_face_y, stored_start_x;
 let blink_interval;
-let screen_off = id * 100 / speed;
+let screen_off = (id+1) * 100 / speed;
 
 let getConfig = () => {
   $.get('/static/config.json', data => {
@@ -124,7 +124,7 @@ let zoomIn = () => {
   setTimeout(function() { 
     blink(false);
     $('#label').show();
-    $('#expression').css('margin-left', ((Math.random() > 0.5 ? 1 : -1) * 1.8) + 'em');
+    $('#expression').css('margin-left', ((Math.random() > 0.5 ? 1 : -1) * 1.6) + 'em');
     $('#expression').show();
   }, zoomed_out_pause_duration + animation_duration);
 }
@@ -157,6 +157,6 @@ let blink = (val) => {
         $( '#expression').show();
       else
         $( '#expression').hide();
-    }, 700 / speed);
+    }, 750 / speed);
   }
 };
