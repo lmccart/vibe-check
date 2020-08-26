@@ -1,2 +1,2 @@
-#!/bin/sh
-~/miniconda3/envs/vibe-check-face/bin/python app.py
+#!/bin/bash
+~/miniconda3/envs/vibe-check-dlib/bin/python app.py

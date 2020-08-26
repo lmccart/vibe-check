@@ -50,8 +50,7 @@ def xywh_to_tblr(xywh):
 
 class FaceAnalyzer:
     def __init__(self):
-        # switch to http://dlib.net/cnn_face_detector.py.html or blazeface
-        self.face_detector = dlib.get_frontal_face_detector()
+        self.face_detector = dlib.cnn_face_detection_model_v1('models/mmod_human_face_detector.dat')
         self.shape_predictor = dlib.shape_predictor('models/shape_predictor_5_face_landmarks.dat')
         self.face_recognizer = dlib.face_recognition_model_v1('models/dlib_face_recognition_resnet_model_v1.dat')
         self.expression_classifier = ort.InferenceSession('models/ferplus-mobilenetv2-0.830.onnx')
@@ -61,7 +60,8 @@ class FaceAnalyzer:
     def __call__(self, img, downsample=2):
         height, width = img.shape[:2]
         img_small = cv2.resize(img, (width//downsample, height//downsample))
-        rects = self.face_detector(img_small, 0) # 500ms on CPU # 120ms on GPU
+        rects = self.face_detector(img_small, 0)
+        rects = [e.rect for e in rects] # needed for cnn_face_detection_model_v1
         if len(rects) == 0:
             return []
         shapes = [self.shape_predictor(img_small, e) for e in rects] # 2ms

@@ -1,0 +1,6 @@
+#!/bin/bash
+
+for service in face app cluster; do
+    SYSTEMD_COLORS=1 systemctl status vibe-check-$service | head -n3
+    journalctl -eu vibe-check-$service | tail -n3
+done

@@ -1,10 +1,11 @@
 from multiprocessing import Process
 from multiprocessing.managers import BaseManager
-from queue import Queue
+from queue import Queue, Full
 import time
 import os
 
 from flask import Flask, request, jsonify
+import logging
 
 class MyManager(BaseManager):
     pass
@@ -33,7 +34,6 @@ def run(gpu_id, queue, tracker):
     analyzer = AnalysisProcess()
     while tracker.is_running():
         analyzer(*queue.get())
-        print('gpu', gpu_id)
 
 processes = []
 
@@ -44,10 +44,15 @@ for gpu_id in range(gpu_count):
     processes.append(p)
 
 app = Flask(__name__)
+log = logging.getLogger('werkzeug')
+log.disabled = True
 
 @app.route('/vibecheck/upload/<camera_id>', methods=['POST'])
 def upload(camera_id):
-    queue.put_nowait((camera_id, request.get_data()))
+    try:
+        queue.put_nowait((camera_id, request.get_data()))
+    except Full:
+        pass
     return jsonify(success=True)
 
 try:

@@ -1,7 +1,7 @@
 mkdir -p models
 cd models
 
-for DLIB_FN in shape_predictor_5_face_landmarks dlib_face_recognition_resnet_model_v1; do
+for DLIB_FN in shape_predictor_5_face_landmarks dlib_face_recognition_resnet_model_v1 mmod_human_face_detector; do
     wget http://dlib.net/files/$DLIB_FN.dat.bz2
     bzip2 -d $DLIB_FN.dat.bz2
 done

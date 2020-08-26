@@ -51,28 +51,29 @@ camera.software_auto_white_balance(enable=False)
 camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
 camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 
-while True:
-    log('capturing')
-    frame = camera.capture(encoding='raw')
+# while True:
+#     log('capturing')
+#     frame = camera.capture(encoding='raw')
 
-    log('processing image')
-    img = processor(frame.as_array)
+#     log('processing image')
+#     img = processor(frame.as_array)
 
-    clipping = np.sum(img == 1023)
-    pixels = width * height * 3
-    ratio = float(clipping) / pixels
-    log('percent clipping:', 100*ratio)
+#     clipping = np.sum(img == 1023)
+#     pixels = width * height * 3
+#     ratio = float(clipping) / pixels
+#     log('percent clipping:', 100*ratio)
 
-    if ratio < 0.0001:
-        break
+#     if ratio < 0.0001:
+#         break
 
-    config['exposure'] = int(0.9 * config['exposure'])
-    camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
-    log('clipping, decreasing exposure to', config['exposure'])
+#     config['exposure'] = int(0.9 * config['exposure'])
+#     camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
+#     log('clipping, decreasing exposure to', config['exposure'])
 
 mkdirp('../reference')
-for i, bracket in enumerate((0.50, 1.00, 1.50)):
-    exposure = int(bracket * config['exposure'])
+# for i, bracket in enumerate((0.50, 1.00, 1.50)):
+#     exposure = int(bracket * config['exposure'])
+for i, exposure in enumerate((25600, 12800, 6400, 3200)):
     camera.set_control(v4l2.V4L2_CID_EXPOSURE, exposure)
     time.sleep(1)
     log('bracketed exposure ', i, '=', exposure)

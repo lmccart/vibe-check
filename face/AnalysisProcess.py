@@ -14,23 +14,37 @@ class AnalysisProcess():
         self.analyzer = FaceAnalyzer()
 
     def __call__(self, camera_id, data):
+        gpu_id = os.environ['CUDA_VISIBLE_DEVICES']
+        id_str = f'GPU {gpu_id}, camera {camera_id}'
+
         millis = int(time.time() * 1000)
         now = datetime.datetime.now().isoformat()
+
         start_time = time.time()
         img = imdecode(data)
-        faces = self.analyzer(img)
-        duration = time.time() - start_time
-        print(os.getpid(), camera_id, now, round(duration,3), len(faces))
+        decode_duration = time.time() - start_time
 
-        # with open('debug.jpg', 'wb') as f:
-        #     f.write(data)
+        start_time = time.time()
+        faces = self.analyzer(img)
+        analysis_duration = time.time() - start_time
+
+        print(id_str, round(decode_duration,3), round(analysis_duration,3), len(faces), flush=True)
+
+        snapshot_fn = f'data/snapshot/{camera_id}.jpg'
+        if not os.path.exists(snapshot_fn):
+            with open(snapshot_fn, 'wb') as f:
+                f.write(data)
 
         if len(faces) < 2:
             return
 
+        if camera_id in ('4', '7', '8'):
+            if len(faces) <= 3:
+                return
+
         fn = os.path.join(camera_id, str(millis) + '.jpg')
         os.makedirs(os.path.join(image_dir, camera_id), exist_ok=True)
-        print(os.getpid(), camera_id, 'saving to', fn)
+        print(id_str, 'saving to', fn, flush=True)
         full_path = os.path.join(image_dir, fn)
         with open(full_path, 'wb') as f:
             f.write(data)

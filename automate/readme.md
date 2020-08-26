@@ -16,6 +16,6 @@ gsettings set org.gnome.nautilus.preferences executable-text-activation 'launch'
 
 Run `sudo bash setup-services.sh` to setup the `vibe-check-cluster`, `vibe-check-app`, `vibe-check-face` services.
 
-To check the status, run `journalctl -e -u vibe-check-cluster`.
+To check the status, run `journalctl -feu vibe-check-cluster`.
 
 To restart after making changes to code, run `sudo systemctl restart vibe-check-cluster`.
