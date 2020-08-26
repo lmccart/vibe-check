@@ -19,7 +19,6 @@ With Anaconda:
 conda create -y --name vibe-check-app --no-default-packages python=3.7
 conda activate vibe-check-app
 conda install -y flask==1.1.2
-pip install flask_pymongo==2.3.0
 python app.py
 ```
 
