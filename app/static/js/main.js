@@ -7,7 +7,7 @@ let screen_height = window.innerHeight;
 let mask_size = 3840;
 let mask_zoom = 10.0;
 
-let rush_debug = true;
+let rush_debug = false;
 let speed = 1;
 let animation_duration = 3000 / speed;
 let zoomed_in_pause_duration = 4000 / speed;
