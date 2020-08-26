@@ -19,3 +19,7 @@ Run `sudo bash setup-services.sh` to setup the `vibe-check-cluster`, `vibe-check
 To check the status, run `journalctl -feu vibe-check-cluster`.
 
 To restart after making changes to code, run `sudo systemctl restart vibe-check-cluster`.
+
+## Take screenshots
+
+Install `sudo apt install scrot` then `bash screenshot.sh` and look in `screenshots/` for `0-thumb.jpg` and `1-thumb.jpg`.

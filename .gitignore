@@ -28,5 +28,8 @@ rpi/reference
 automate/multibrowse
 automate/multibrowse-source
 
+# screenshots
+automate/screenshot
+
 # don't save backup database
 database/backup
