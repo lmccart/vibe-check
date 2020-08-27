@@ -39,7 +39,7 @@ for camera_id in range(camera_count):
         nearest = np.sqrt((out_group - mean) ** 2).sum(1).min()
         print('  ', label, 'farthest', round(farthest,2), 'nearest', round(nearest, 2))
         
-        blocklist[camera_id].append(mean)
+        blocklist[str(camera_id)].append(mean)
 
 with open('blocklist.pkl', 'wb') as f:
     pickle.dump(dict(blocklist), f)

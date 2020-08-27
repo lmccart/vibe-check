@@ -3,6 +3,8 @@ from multiprocessing.managers import BaseManager
 from queue import Queue, Full
 import time
 import os
+import sys
+import traceback
 
 from flask import Flask, request, jsonify
 import logging
@@ -33,7 +35,18 @@ def run(gpu_id, queue, tracker):
     from AnalysisProcess import AnalysisProcess
     analyzer = AnalysisProcess()
     while tracker.is_running():
-        analyzer(*queue.get())
+        try:
+            analyzer(*queue.get())
+        except KeyboardInterrupt as e:
+            print('GPU', gpu_id, 'clean exit')
+            exit()
+        except Exception as e:
+            with open(f'gpu_{gpu_id}.err.log', 'w') as f:
+                traceback.print_exc(file=f)
+            print('GPU', gpu_id, 'exception', e)
+            traceback.print_exc()
+            print('')
+            sys.stdout.flush()
 
 processes = []
 

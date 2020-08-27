@@ -19,10 +19,11 @@ class AnalysisProcess():
         if os.path.exists('blocklist.pkl'):
             with open('blocklist.pkl', 'rb') as f:
                 self.blocklist = pickle.load(f)
+        print('blocklist:', ' '.join(list(self.blocklist.keys())))
 
     def __call__(self, camera_id, data):
         gpu_id = os.environ['CUDA_VISIBLE_DEVICES']
-        id_str = f'GPU {gpu_id}, camera {camera_id}'
+        id_str = f'GPU {gpu_id} x camera {camera_id:<2}'
 
         millis = int(time.time() * 1000)
         now = datetime.datetime.now().isoformat()
@@ -35,7 +36,7 @@ class AnalysisProcess():
         raw_faces = self.analyzer(img)
         analysis_duration = time.time() - start_time
 
-        print(id_str, round(decode_duration,3), round(analysis_duration,3), len(raw_faces), flush=True)
+        print(id_str, f'{decode_duration:0.3f} {analysis_duration:0.3f}', len(raw_faces), flush=True)
 
         snapshot_fn = f'data/snapshot/{camera_id}.jpg'
         if not os.path.exists(snapshot_fn):
@@ -46,13 +47,13 @@ class AnalysisProcess():
         filtered_faces = []
         for face in raw_faces:
             if camera_id in self.blocklist and classify(face, self.blocklist[camera_id]):
-                print('dropping blocked face', camera_id, flush=True)
                 continue
-            print('adding face', camera_id, flush=True)
             filtered_faces.append(face)
 
         if require_two_faces and len(filtered_faces) < 2:
             return
+
+        print(id_str, 'using', len(filtered_faces), 'of', len(raw_faces), 'faces')
 
         fn = os.path.join(camera_id, str(millis) + '.jpg')
         os.makedirs(os.path.join(image_dir, camera_id), exist_ok=True)
