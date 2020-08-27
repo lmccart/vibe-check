@@ -72,3 +72,11 @@ python setup.py install --record files.txt
 conda install opencv
 pip install flask onnxruntime
 ```
+
+## Building the blocklist
+
+First, set `require_two_faces = False` in `AnalysisProcess.py` and record 100+ images from each camera in the mostly empty exhibition space.
+
+Then run `python build-blocklist.py`. This will recognize clusters of faces based on landmarks and face descriptors. If it isn't recognizing some of the faces, lower `min_samples`. When it is done, it will output `blocklist.pkl`. This is loaded by `AnalysisProcess` to identify faces that need to be blocked.
+
+When you are done, set `require_two_faces = True`, drop the "raw" collection and clear the images.
