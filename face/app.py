@@ -50,7 +50,8 @@ log.disabled = True
 @app.route('/vibecheck/upload/<camera_id>', methods=['POST'])
 def upload(camera_id):
     try:
-        queue.put_nowait((camera_id, request.get_data()))
+        data = request.get_data()
+        queue.put_nowait((camera_id, data))
     except Full:
         pass
     return jsonify(success=True)
