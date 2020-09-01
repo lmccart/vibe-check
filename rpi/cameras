@@ -116,6 +116,7 @@ for ID in $IDS; do
 {
     ADDRESS=$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
     AT=pi@$ADDRESS
+    PREFIX=`printf "%2s" $ID`
     
     # check if the device is online before continuing
     ssh -q \
@@ -129,16 +130,16 @@ for ID in $IDS; do
         ping -W1 -c1 $ADDRESS &> /dev/null
         if [ $? -ne 0 ]
         then
-            echo "$ID offline"
+            echo "$PREFIX down"
         else
-            echo "$ID online, cannot ssh"
+            echo "$PREFIX up, cannot ssh"
         fi
         continue
     fi
 
     case "$1" in
     ping)
-        echo $ID online
+        echo "$PREFIX up"
     ;;
     exec)
         ssh $AT "${@:2}"
