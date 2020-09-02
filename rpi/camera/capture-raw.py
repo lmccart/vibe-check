@@ -27,14 +27,13 @@ def mkdirp(dir_name):
 log('loading config')
 
 # empty default configuration
-config = { }
+config = {
+    'exposure': 12800
+}
 
 # custom configuration overrides defaults
 with open('config.json') as f:
     config.update(json.load(f))
-
-# always start with high exposure
-config['exposure'] = 12800
 
 width, height = 4656, 3496
 processor = RawProcessor(width, height, mode='bgr')
@@ -71,9 +70,9 @@ camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 #     log('clipping, decreasing exposure to', config['exposure'])
 
 mkdirp('../reference')
-# for i, bracket in enumerate((0.50, 1.00, 1.50)):
-#     exposure = int(bracket * config['exposure'])
-for i, exposure in enumerate((25600, 12800, 6400, 3200)):
+for i, bracket in enumerate((0.80, 1.00, 1.20)):
+    exposure = int(bracket * config['exposure'])
+# for i, exposure in enumerate((25600, 12800, 6400, 3200)):
     camera.set_control(v4l2.V4L2_CID_EXPOSURE, exposure)
     time.sleep(1)
     log('bracketed exposure ', i, '=', exposure)

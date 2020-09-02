@@ -15,7 +15,6 @@ def remove_padding_and_unpack_fast(data, width, height, bit_width, out):
     """Remove padding and rearrange packed 16-bit values into unpacked."""
     real_width = width // 8 * bit_width
     align_width = align_up(real_width, 32)
-    align_height = align_up(height, 16)
     jj = 0
     k = 0
     for y in range(height):
