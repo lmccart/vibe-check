@@ -56,6 +56,42 @@ def apply_lut(img16, img8, lut):
         for j in range(3):
             img8_flat[i][j] = lut[j][img16_flat[i][j]]
         
+@njit
+def remove_padding_and_unpack_quarter_bgr_preview(data, width, height, bit_width, out):
+    """Same as above, but at quarter resolution unpacked directly to BGR."""
+    real_width = width // 8 * bit_width
+    align_width = align_up(real_width, 32)
+    skip_length = align_width * 4
+    jj = 0
+    k = 0
+    n = width//4
+    for y in range(height//4):
+        j = jj
+        for x in range(width//4):
+            out[k+0] = data[j]
+            out[k+1] = data[j+1]
+            out[k+2] = data[j+align_width+1]
+            j += 5
+            k += 3
+        jj += skip_length
+
+@njit
+def zebra(img, width, height):
+    i = 0
+    n = width * height * 3
+    for y in range(height):
+        for x in range(width//3):
+            if img[i] == 255:
+                img[i] = 0
+            if img[i+1] == 255:
+                img[i+1] = 0
+            if img[i+2] == 255:
+                img[i+2] = 0          
+            i += 9
+        i += 3
+        if i > n:
+            break
+
 class RawProcessor:
     """For 16-bit output leave curves=None."""
     def __init__(self, width, height, curves=None, mode='bgr'):

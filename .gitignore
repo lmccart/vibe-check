@@ -23,6 +23,7 @@ rpi/camera/*.bin
 
 # raw reference images for color correction
 rpi/reference
+rpi/download
 
 # multibrowse app
 automate/multibrowse

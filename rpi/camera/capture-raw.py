@@ -8,7 +8,7 @@ def log(*args):
     print(str(datetime.datetime.now()), *args)
     sys.stdout.flush()
 
-from RawProcessor import RawProcessor
+from RawProcessor import RawProcessor, zebra, remove_padding_and_unpack_quarter_bgr_preview
 import cv2
 import numpy as np
 import arducam_mipicamera as arducam
@@ -28,7 +28,7 @@ log('loading config')
 
 # empty default configuration
 config = {
-    'exposure': 12800
+    'exposure': 1600
 }
 
 # custom configuration overrides defaults
@@ -70,13 +70,19 @@ camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 #     log('clipping, decreasing exposure to', config['exposure'])
 
 mkdirp('../reference')
-for i, bracket in enumerate((0.80, 1.00, 1.20)):
+preview = np.zeros((height//4, width//4, 3), np.uint8)
+for i, bracket in enumerate((1.0,)): #(0.80, 1.00, 1.20)):
     exposure = int(bracket * config['exposure'])
 # for i, exposure in enumerate((25600, 12800, 6400, 3200)):
     camera.set_control(v4l2.V4L2_CID_EXPOSURE, exposure)
     time.sleep(1)
     log('bracketed exposure ', i, '=', exposure)
     frame = camera.capture(encoding='raw')
+
+    remove_padding_and_unpack_quarter_bgr_preview(frame.as_array, width, height, 10, preview.reshape(-1))
+    zebra(preview.reshape(-1), width//4, height//4)
+    cv2.imwrite('../reference/preview.jpg', preview)
+
     frame.as_array.tofile('../reference/' + str(exposure) + '.raw')
 
 log('exiting')
