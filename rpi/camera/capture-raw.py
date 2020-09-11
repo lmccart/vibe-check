@@ -16,6 +16,7 @@ import v4l2
 import os
 import errno
 import time
+import sys
 
 def mkdirp(dir_name):
     try:
@@ -34,6 +35,10 @@ config = {
 # custom configuration overrides defaults
 with open('config.json') as f:
     config.update(json.load(f))
+
+if len(sys.argv) > 1:
+    config['exposure'] = int(sys.argv[1])
+    print('overriding exposure with', config['exposure'])
 
 width, height = 4656, 3496
 processor = RawProcessor(width, height, mode='bgr')

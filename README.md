@@ -13,3 +13,33 @@ As a very first step, install [Anaconda](https://www.anaconda.com/). Then follow
 2. `app/`
 3. `face/`
 4. `automate/`
+
+## Status check
+
+* CPU should be busy: run `htop` and look for CPU activity.
+* GPUs should be busy: run `nvidia-smi`
+* Services should be running: `cd automate && ./status`
+* Logs should be updating `journalctl -feu vibe-check-face`
+* Cameras should be sending data (active) `cd rpi && ./cameras status`
+
+## Start-up and shut-down
+
+Install XBindKeys:
+
+```
+sudo apt-get install xbindkeys xbindkeys-config
+xbindkeys --defaults > /home/hek/.xbindkeysrc
+xbindkeys-config
+```
+
+Add an action for `control+shift + q` pointing to:
+
+```
+bash /home/hek/Documents/vibe-check/automate/killall-chrome.sh
+```
+
+And for `control+shift + q` pointing to:
+
+```
+bash /home/hek/Documents/vibe-check/automate/open-chrome.sh
+```
