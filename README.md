@@ -14,6 +14,14 @@ As a very first step, install [Anaconda](https://www.anaconda.com/). Then follow
 3. `face/`
 4. `automate/`
 
+### Additional configuration
+
+Disable all desktop notifications:
+
+```
+gsettings set org.gnome.desktop.notifications show-banners false
+```
+
 ## Status check
 
 * CPU should be busy: run `htop` and look for CPU activity.
