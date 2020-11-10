@@ -51,3 +51,17 @@ And for `control+shift + q` pointing to:
 ```
 bash /home/hek/Documents/vibe-check/automate/open-chrome.sh
 ```
+
+Set the machine to automatically reboot daily at 6am:
+
+```
+sudo crontab -e
+```
+
+Add the following line:
+
+```
+0 6   *   *   *    /sbin/shutdown -r +5
+```
+
+And then using "Startup Application Preferences", add the `open-chrome.sh` to run on startup.
