@@ -46,7 +46,7 @@ Add an action for `control+shift + q` pointing to:
 bash /home/hek/Documents/vibe-check/automate/killall-chrome.sh
 ```
 
-And for `control+shift + q` pointing to:
+And for `control+shift + c` pointing to:
 
 ```
 bash /home/hek/Documents/vibe-check/automate/open-chrome.sh
