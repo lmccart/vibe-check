@@ -13,9 +13,12 @@ let animation_duration = 3000 / speed;
 let zoomed_in_pause_duration = 4000 / speed;
 let zoomed_out_pause_duration = 5000 / speed;
 let mask_zoom_duration = 1000 / speed;
-let stored_face_x, stored_face_y, stored_start_x;
+let stored_face_x, stored_face_y, stored_photo_out_x, stored_photo_in_x, stored_mask_in_x;
 let blink_interval;
 let screen_off = (id+1) * 100 / speed;
+
+let timeline;
+
 
 let getConfig = () => {
   $.get('/static/config.json', data => {
@@ -38,12 +41,10 @@ getConfig();
 let update = (ready) => {
   let now = new Date().getTime();
   $.get('/static/data.json?'+now, data => {
-    console.log(data[expression]);
     let expression_data = data[expression];
     let url = image_base+expression_data.photo_path;
     if (url !== $('#photo').attr('src')) {
       $('#photo').attr('src', url);
-      console.log('change!');
     }
     $('#expression').text(label);
 
@@ -53,7 +54,19 @@ let update = (ready) => {
     stored_face_y = expression_data.rect[1] * photo_ratio;
     
     // check which side of photo to start from
-    stored_start_x = stored_face_x < photo_width * 0.5 ? -photo_width + screen_width : 0;
+    // calculate stored_photo_out_x
+    stored_photo_out_x = stored_face_x < photo_width * 0.5 ? -photo_width + screen_width : 0;
+
+    // calculate stored_photo_in_x, stored_mask_in_x
+    let half = screen_width * 0.5;
+    stored_mask_in_x = half + (Math.random() - 0.5) * screen_width * 0.2;
+    let left_diff = photo_width - stored_face_x;
+    if (stored_mask_in_x > stored_face_x) stored_mask_in_x = stored_face_x;
+    else if (left_diff < half) stored_mask_in_x = stored_mask_in_x + (half - left_diff);
+    let offset = stored_mask_in_x - stored_face_x;
+    offset = Math.max(offset, screen_width - photo_width);
+    offset = Math.min(offset, 0);
+    stored_photo_in_x = offset
 
     if (ready) start();
   });
@@ -61,14 +74,47 @@ let update = (ready) => {
 
 let start = () => {
   
-  // reset
-  blink(false);
+  reset();
+
+  let totalTime = zoomed_in_pause_duration + zoomed_out_pause_duration + 2 * animation_duration;
+  let millis = new Date().getTime();
+  let rem = millis % totalTime;
+  let diff = totalTime - rem;
+  if (diff < 1000) diff += totalTime;
+  if (rush_debug) diff = 500;
+
+  let t = 0;
+
+  timeline = new Timeline({ loop: true, duration: totalTime, interval: 100 });
+  timeline.add({ time: t, event: slideIn});
+  t += animation_duration - mask_zoom_duration + screen_off;
+  timeline.add({ time: t, event: zoomIn });
+  t += mask_zoom_duration;
+  timeline.add({ time: t, event: showLabel });
+  t += zoomed_in_pause_duration - screen_off;
+  timeline.add({ time: t, event: hideLabel });
+  timeline.add({ time: t, event: slideAndZoomOut});
+  t += animation_duration + screen_off;
+  timeline.add({ time: t, event: blinkLabel });
+  timeline.add({ time: t, event: update });
+
+  t += zoomed_out_pause_duration - screen_off;
+
+  timeline.setDuration(t);
+
+  setTimeout(function() {
+    blink(true);
+    timeline.start();
+  }, diff);
+  console.log(diff);
+}
+
+let reset = () => {
   $( '#photo' ).css('height', '100%');
-  $( '#photo' ).css('left', stored_start_x);
-  $( '#mask' ).css('width', mask_size * mask_zoom);
-  $( '#mask' ).css('height', mask_size * mask_zoom);
-  $( '#mask' ).css('left', (stored_face_x - mask_size * mask_zoom * 0.5));
-  $( '#mask' ).css('top', (stored_face_y - mask_size * mask_zoom * 0.5));
+  $( '#photo' ).css('transform', 'translate(0, 0)');
+  $( '#mask' ).css('width', mask_size);
+  $( '#mask' ).css('height', mask_size);
+  $( '#mask' ).css('transform', `translate(${stored_face_x - mask_size * 0.5}px, ${stored_face_y - mask_size * 0.5}px) scale(${mask_zoom})`);
   $( '#label').hide();
 
   $( '#mask' ).show();
@@ -76,87 +122,139 @@ let start = () => {
   $( '#mask').stop();
   $( '#label').stop();
   $( '#expression').stop();
+};
 
 
-  let totalTime = zoomed_in_pause_duration + zoomed_out_pause_duration + 2 * animation_duration;
-  let millis = new Date().getTime();
-  let rem = millis % totalTime;
-  let diff = totalTime - rem + screen_off;
-  if (diff < 1000) diff += totalTime;
-  if (rush_debug) diff = 500;
-  setTimeout(function() {
-    zoomIn();
-    zoom_interval = setInterval(zoomIn, totalTime);
-  }, diff);
-  console.log(diff);
+let slideIn = () => {
+  $('#photo').css('transform', `translate(${stored_photo_in_x}px, 0)`);
 }
 
-// slide photo to final position
-let slide = (x) => {
-  let half = screen_width * 0.5;
-  let target_x = half + (Math.random() - 0.5) * screen_width * 0.2;
-  let left_diff = photo_width - x;
-  if (target_x > x) target_x = x;
-  else if (left_diff < half) target_x = target_x + (half - left_diff);
-  let offset = target_x - x;
-  // console.log(offset, screen_width - photo_width)
-  offset = Math.max(offset, screen_width - photo_width);
-  offset = Math.min(offset, 0);
-  $( '#photo' ).delay(zoomed_out_pause_duration).animate({
-    left: offset
-  }, animation_duration, 'swing');
-  return target_x;
-}
-
-// zoom into face
 let zoomIn = () => {
-  update();
+  $( '#mask' ).css('transform', `translate(${stored_mask_in_x - mask_size * 0.5}px, ${stored_face_y - mask_size * 0.5}px) scale(1)`);
+}
+
+let slideAndZoomOut = () => {
+  $('#photo').css('transform', `translate(${stored_photo_out_x}px, 0)`);
+  $('#mask').css('transform', `translate(${stored_face_x - mask_size * 0.5}px, ${stored_face_y - mask_size * 0.5}px) scale(${mask_zoom})`);
+}
+
+
+let blinkLabel = () => {
   blink(true);
+  $('#label').hide();
+};
 
-  let target_x = slide(stored_face_x);
-  $( '#mask' ).delay(zoomed_out_pause_duration + animation_duration - mask_zoom_duration).animate({
-    width: mask_size,
-    height: mask_size,
-    left: target_x - mask_size * 0.5,
-    top: stored_face_y - mask_size * 0.5,
-  }, mask_zoom_duration, 'swing', function() { zoomOut(stored_face_x, stored_face_y, stored_start_x); });
-  
-  setTimeout(function() { 
-    blink(false);
-    $('#label').show();
-    $('#expression').css('margin-left', ((Math.random() > 0.5 ? 1 : -1) * 1.6) + 'em');
-    $('#expression').show();
-  }, zoomed_out_pause_duration + animation_duration);
-}
+let showLabel = () => {
+  blink(false);
+  $('#label').show();
+  $('#expression').css('margin-left', ((Math.random() > 0.5 ? 1 : -1) * 1.6) + 'em');
+  $('#expression').css('opacity', 1);
+};
 
-// zoom out of face
-let zoomOut = (face_x, face_y, start_x) => {
-  $( '#photo' ).delay(zoomed_in_pause_duration - screen_off).animate({
-    left: start_x
-  }, animation_duration, 'swing');
-  $( '#mask' ).delay(zoomed_in_pause_duration - screen_off).animate({
-    width: mask_size * mask_zoom,
-    height: mask_size * mask_zoom,
-    left: (face_x - mask_size * mask_zoom * 0.5),
-    top: (face_y - mask_size * mask_zoom * 0.5)
-  }, animation_duration, 'swing');
-
-  setTimeout(function() { 
-    // blink(true);
-    $('#label').hide();
-    $('#expression').hide();
-    $('#expression').css('margin-left', 0);
-  }, zoomed_in_pause_duration);
-}
+let hideLabel = () => {
+  blink(false);
+  $('#label').hide();
+  $('#expression').css('margin-left', 0);
+  $('#expression').css('opacity', 0);
+};
 
 let blink = (val) => {
-  if (blink_interval) clearInterval(blink_interval);
   if (val) {
-    blink_interval = setInterval( function() { 
-      if ($( '#expression').css('display') === 'none') 
-        $( '#expression').show();
-      else
-        $( '#expression').hide();
-    }, 750 / speed);
-  }
+    $('#expression').addClass('blink');
+  } else $('#expression').removeClass('blink');
 };
+
+
+
+
+
+
+class Timeline {
+
+  constructor(opts) {
+    this.timeline = {};
+    this.completed_events = {};
+    this.interval = opts.interval;
+    this.loop = opts.loop;
+    this.duration = opts.duration;
+    this.status = 'stopped';
+    this.startTime = null;
+  }
+
+  add(opts) {
+    let id = (Date.now().toString(36) + Math.random().toString(36).substr(2, 5)).toUpperCase();
+    this.timeline[id] = opts;
+  }
+
+  clear() {
+    this.timeline = {};
+    this.completed_events = {};
+    this.startTime = null;
+  }
+
+  setDuration(duration) {
+    this.duration = duration;
+  }
+
+  reset() {
+    this.completed_events = {};
+    this.startTime = Date.now();
+  }
+
+  stop() {
+    this.status = 'stopped';
+  }
+
+  _play_uncompleted() {
+    let curtime = Date.now();
+
+    for (const k in this.timeline) {
+      if ((curtime >= Number(this.timeline[k].time) + this.startTime) && !(k in this.completed_events)) {
+        this.timeline[k].event();
+        this.completed_events[k] = true;
+      } 
+    }
+  }
+
+  update() {
+    this._play_uncompleted();
+  }
+
+  start(opts) {
+    var self = this;
+
+    this.reset();
+    this.status = 'playing';
+
+    var loopUpdate = function() {
+
+      setTimeout(function() {
+        if (self.status === 'stopped') {
+          return; 
+        } 
+        self.update();
+
+        let msPastDuration = Date.now() - Number(self.startTime) - Number(self.duration);
+
+
+        if (msPastDuration < 0) {
+        // we're still within the timeline
+          loopUpdate(); 
+        } else {
+          // we're past timeline duration!
+          if (self.loop) {
+            self.completed_events = {};
+            self.startTime = Date.now() - msPastDuration;
+            loopUpdate();
+          } else {
+          // we're not looping and we're over
+            if (opts && 'callback' in opts && typeof(opts.callback) === 'function') {
+              opts.callback();
+            }
+          }
+        }
+      }, self.interval);
+    };
+    loopUpdate();
+  }
+}

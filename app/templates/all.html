@@ -1,0 +1,26 @@
+<!doctype html>
+<html>
+  <head>
+    <title>vibe check</title>
+    <script type="text/javascript" src="{{ url_for('static', filename='js/jquery-3.5.1.min.js') }}"></script>
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js" integrity="sha256-yr4fRk/GU1ehYJPAs8P4JlTgu0Hdsp4ZKrx8bDEDC3I=" crossorigin="anonymous"></script> -->
+    <link rel="stylesheet" href="https://use.typekit.net/tnf6ooo.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+      iframe {
+        width: 16vw;
+        height: calc(16 * 16vw / 9);
+        border: none;
+        outline: none;
+      }
+    </style>
+  </head>
+  <body>
+    <iframe src="http://0.0.0.0:8080/0"></iframe>
+    <iframe src="http://0.0.0.0:8080/1"></iframe>
+    <iframe src="http://0.0.0.0:8080/2"></iframe>
+    <iframe src="http://0.0.0.0:8080/3"></iframe>
+    <iframe src="http://0.0.0.0:8080/4"></iframe>
+    <iframe src="http://0.0.0.0:8080/5"></iframe>
+  </body>
+</html>

@@ -11,7 +11,10 @@ def send_image(camera_id, image):
 
 @app.route('/<id>')
 def home_page(id):
-  return render_template('index.html')
+  if id == 'all':
+    return render_template('all.html')
+  else:
+    return render_template('index.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=True, port=8080)

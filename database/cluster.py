@@ -1,7 +1,15 @@
+# if this script is running in a different timezone than the database,
+# then the weighting will be calculated incorrectly. the alternative is to
+# explicitly code the timezone of the database, but then the code has to be
+# manually updated when the installation moves time zones.
+
 from pymongo import MongoClient
 import hdbscan
 import json
+import math
 from bson.objectid import ObjectId
+from collections import defaultdict
+import datetime
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -57,13 +65,26 @@ def recognize():
 
     return recognized_photos
 
+# 100 drops to weight of 0.2 over 7 days
+# 10 drops to weight of 0.2 over 1 day
+def get_weight(dt, falloff=100):
+    now = datetime.datetime.now().astimezone()
+    secs = (now - dt).total_seconds() # positive
+    hours = secs / (60 * 60)
+    return math.exp(-hours / falloff)
+
 # main method, analyzes each entry in recognized-photos, builds db of people, updates mongo
 def update_db(recognized_photos):
     all_expressions = []
     people_db = {}
     
     for document in recognized_photos:
-        people = document.get('people')
+        people = document['people']
+
+        # to run this script in a different timezone than the database,
+        # pass the database's timezone to astimezone(). e.g., UTC+2 (CEST):
+        # db_timezone = datetime.timezone(datetime.timedelta(seconds=7200))
+        weight = get_weight(document['created'].astimezone())
 
         # get sum of expressions in photo
         total_expressions = sum_photo_expressions(people)
@@ -71,30 +92,31 @@ def update_db(recognized_photos):
         
         # for each person, calculate total expression response
         for person in people:
-            faceid = person.get('faceid')
+            faceid = person['faceid']
             expressions = {}
             max_expressions = {}
             max_photos = {}
             max_rects = {}
             max_timestamp = {}
-            for exp in person.get('expressions'):
+            for exp in person['expressions']:
                 if len(all_expressions) == 0:
-                    all_expressions = person.get('expressions')
+                    all_expressions = person['expressions']
 
-                val = total_expressions[exp] - person.get('expressions')[exp]
+                val = total_expressions[exp] - person['expressions'][exp]
+                val *= weight
                 if exp in expressions:
                     expressions[exp] += val
                     if val > max_expressions[exp]:
                         max_expressions[exp] = val
-                        max_photos[exp] = document.get('photoPath')
-                        max_rects[exp] = person.get('rect')
-                        max_timestamp[exp] = document.get('created')
+                        max_photos[exp] = document['photoPath']
+                        max_rects[exp] = person['rect']
+                        max_timestamp[exp] = document['created']
                 else:
                     expressions[exp] = val
                     max_expressions[exp] = val
-                    max_photos[exp] = document.get('photoPath')
-                    max_rects[exp] = person.get('rect')
-                    max_timestamp[exp] = document.get('created')
+                    max_photos[exp] = document['photoPath']
+                    max_rects[exp] = person['rect']
+                    max_timestamp[exp] = document['created']
 
             # add or update entry in people_db
             update_person_entry(people_db, faceid, expressions, max_expressions,
@@ -106,15 +128,11 @@ def update_db(recognized_photos):
 
 # calculate sum expressions expressed in photo by all (helper method)
 def sum_photo_expressions(people):
-    total_expressions = {}
+    total_expressions = defaultdict(float)
     for person in people:
-        for exp in person.get('expressions'):
-            val = person.get('expressions')[exp]
-            if exp in total_expressions:
-                total_expressions[exp] += val
-            else:
-                total_expressions[exp] = val
-    return total_expressions
+        for exp, val in person['expressions'].items():
+            total_expressions[exp] += val
+    return dict(total_expressions)
 
 # add or update entry in people_db
 def update_person_entry(people_db, faceid, expressions, max_expressions, max_photos, max_rects, max_timestamp, num_people):
@@ -155,7 +173,7 @@ def prep_and_update_mongo(people_db):
 def write_json(all_expressions):
     output = {}
     for exp in all_expressions:
-        # exp = e.get('expression')
+        # exp = e['expression']
         max_exp = client.vibecheck['people'].find().sort('avg_expressions.'+exp, -1)[0]
         output[exp] = {
             'faceid': max_exp['faceid'],
@@ -171,4 +189,3 @@ if __name__ == '__main__':
     recognized_photos = recognize()
     all_expressions = update_db(recognized_photos)
     write_json(all_expressions)
-
