@@ -1,0 +1,26 @@
+{
+  "happiness": {
+    "photo_path": "0/glee.jpg",
+    "rect": [2965.0, 1430.0, 165, 165]
+  },
+  "surprise": {
+    "photo_path": "0/surprise.jpg",
+    "rect": [1680.0, 2100.0, 400, 400]
+  },
+  "anger": {
+    "photo_path": "0/anger.jpg",
+    "rect":  [1820.0, 1320.0, 200, 200]
+  },
+  "disgust": {
+    "photo_path": "0/disgust.jpg",
+    "rect": [1810.0, 1650.0, 490, 490]
+  },
+  "sadness": {
+    "photo_path": "0/sadness.jpg",
+    "rect": [2680.0, 1010.0, 335, 335]
+  },
+  "contempt": {
+    "photo_path": "0/contempt.jpg",
+    "rect": [2720.0, 1210.0, 267, 267]
+  }
+}
