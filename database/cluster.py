@@ -167,7 +167,8 @@ def write_json(all_expressions):
     with open('../app/static/data.json', 'w', encoding='utf-8') as f:
         json.dump(output, f, cls=Encoder, indent=2)
 
-recognized_photos = recognize()
-all_expressions = update_db(recognized_photos)
-write_json(all_expressions)
+if __name__ == '__main__':
+    recognized_photos = recognize()
+    all_expressions = update_db(recognized_photos)
+    write_json(all_expressions)
 
