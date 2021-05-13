@@ -4,7 +4,10 @@ app = Flask(__name__)
 
 @app.route('/images/<camera_id>/<image>')
 def send_image(camera_id, image):
-  return send_from_directory(f'images/{camera_id}', image)
+  try:
+    return send_from_directory(f'images/{camera_id}', image)
+  except:
+    return send_from_directory(f'edited/{camera_id}', image)
 
 @app.route('/<id>')
 def home_page(id):
