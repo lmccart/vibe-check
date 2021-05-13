@@ -45,6 +45,7 @@ esac
 
 if [ ! -e "$SSH_FILE" ]; then
     echo "Couldn't find $SSH_FILE"
+    echo "Try running ssh-keygen first"
     exit
 fi
 

@@ -2,9 +2,12 @@
 
 ## Setup with a new computer
 
-```
+If you don't already have an ssh key, run `ssh-keygen`. Then run:
+
+``` 
 ./cameras list
 ./cameras ssh-copy-id
+./cameras ping
 ```
 
 ## Raspberry Pi setup

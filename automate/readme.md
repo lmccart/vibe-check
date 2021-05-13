@@ -2,7 +2,7 @@
 
 ## Load multiple windows in kiosk mode
 
-First build multibrowse: `bash build-multibrowse.sh`
+First build multibrowse: `bash build-multibrowse.sh` If you have a problem building multibrowse, make sure to restart the shell so `pip` is available.
 
 Then run `bash open-chrome.sh`.
 

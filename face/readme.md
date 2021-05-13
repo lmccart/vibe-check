@@ -28,7 +28,13 @@ python app.py
 
 ## Install CUDA
 
-First install the NVIDIA Driver 440.100, then install CUDA:
+First install the NVIDIA Driver. This was originally tested under 440.100:
+
+```
+sudo apt install nvidia-driver-440
+```
+
+Then install CUDA (without the NVIDIA driver):
 
 ```
 cd ~
