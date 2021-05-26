@@ -86,6 +86,6 @@ sudo systemctl daemon-reload
 
 Make an image of the first pi using Disk Utility. Select "compressed" image type. Then use Etcher to create remaining cards.
 
-Load each card into a pi and find the IP address. Then run `./cameras set-hostname <ip> <number>` for example `./cameras set-hostname 192.168.0.195 11`. Finally push the code to the pi with `./cameras update <number>` for example `./cameras update 11`.
+Load each card into a pi and find the IP address. Then run `./cameras set-hostname <ip> <number>` for example `./cameras set-hostname 192.168.0.195 11`. Finally push the code to the pi with `IDS=<camera id> ./cameras update` for example `IDS=11 ./cameras update`.
 
 Some final scripts are needed to regulate the network connection, run `./cameras exec "sudo bash camera/fix-wlan.sh"`.

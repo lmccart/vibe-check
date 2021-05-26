@@ -18,7 +18,11 @@ import numpy as np
 import requests
 from requests.exceptions import ConnectionError
 
+print('loading configuration')
+
 # default configuration
+min_exposure = 1280
+max_exposure = 128000
 config = {
     'id': 0,
     'exposure': 12800,
@@ -27,6 +31,11 @@ config = {
         # [[0, 16], [127, 110], [255, 255]], # daylight
         # [[0, 17], [127, 159], [255, 255]],
         # [[0, 17], [127, 107], [255, 255]]]
+
+        # [[0,0], [127,103], [255,255]], # basic white balance
+        # [[0,0], [127,130], [255,255]],
+        # [[0,0], [127,58], [255,255]]]
+
         [[0, 17], [127,103], [255, 197]], # exhibition
         [[0, 17], [127,130], [255, 233]],
         [[0, 17], [127,58], [255, 99]]]
@@ -56,17 +65,47 @@ camera.software_auto_white_balance(enable=False)
 camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
 camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 
-def capture_and_send():
-    with open('config.json') as f:
-        config.update(json.load(f))
+def pct_overexposed(img, pts=16):
+    h,w = img.shape[:2]
+    overexposed = 0
+    for y in np.linspace(0, h, pts, endpoint=False, dtype=int):
+        for x in np.linspace(0, w, pts, endpoint=False, dtype=int):
+            if np.any(img[y,x] == 255):
+                overexposed += 1
+    return float(overexposed) / (pts ** 2)
+
+def modify_exposure(multiplier):
+    config['exposure'] *= multiplier
+    config['exposure'] = np.clip(config['exposure'], min_exposure, max_exposure)
+    config['exposure'] = int(config['exposure'])
+    # if multiplier > 1:
+    #     print('increasing exposure to', config['exposure'])
+    # else:
+    #     print('decreasing exposure to', config['exposure'])
     camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
-    camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
+
+def capture_and_send():
+
+    # uncomment to update in realtime
+
+    # with open('config.json') as f:
+    #     config.update(json.load(f))
+    # camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
+    # camera.set_control(v4l2.V4L2_CID_FOCUS_ABSOLUTE, config['focus'])
 
     # capture image
     frame = camera.capture(encoding='raw')
 
     # process image
     img = processor(frame.as_array)
+
+    # get exposure advice and autoexpose
+    overexposed = pct_overexposed(img)
+    # print('overexposed', overexposed)
+    if overexposed > 0.02:
+        modify_exposure(0.99)
+    if overexposed == 0:
+        modify_exposure(1.01)
 
     # convert to jpeg
     encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), jpeg_quality]
