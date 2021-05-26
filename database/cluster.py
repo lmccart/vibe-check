@@ -33,6 +33,10 @@ def recognize():
 
     print('total descriptors:', len(descriptors))
 
+    if len(descriptors) == 0:
+        print('skipping...')
+        return []
+
     # cluster all the labels (can take 15 seconds)
     clusterer = hdbscan.HDBSCAN(
         min_cluster_size=2,
@@ -162,6 +166,9 @@ def prep_and_update_mongo(people_db):
     docs = []
     for faceid in people_db:
         for exp in people_db[faceid]['expressions']:
+            if people_db[faceid]['num_people'] == 0:
+                print(f'faceid {faceid} exp {exp} num_people==0, skipping')
+                continue
             people_db[faceid]['avg_expressions'][exp] = people_db[faceid]['expressions'][exp]/(people_db[faceid]['num_people'])
         docs.append(people_db[faceid])
     print('total people:', len(docs))
@@ -187,5 +194,7 @@ def write_json(all_expressions):
 
 if __name__ == '__main__':
     recognized_photos = recognize()
+    if len(recognized_photos) == 0:
+        exit()
     all_expressions = update_db(recognized_photos)
     write_json(all_expressions)
