@@ -9,7 +9,8 @@ from imutil import imwrite, imdecode
 from blocking import classify
 
 image_dir = '../app/images'
-require_two_faces = True
+require_two_faces = True # when blocklist is ready
+# require_two_faces = False # when building blocklist
 
 class AnalysisProcess():
     def __init__(self):

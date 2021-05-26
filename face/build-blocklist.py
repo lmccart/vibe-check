@@ -7,29 +7,38 @@ from blocking import face_to_features
 
 camera_count = 12
 min_samples = 20
+max_features = 1000
 
 client = MongoClient()
 blocklist = defaultdict(list)
 
 for camera_id in range(camera_count):
+    print(f'analyzing camera {camera_id}')
     
     features = []
     for e in client.vibecheck.raw.find({'camera_id': str(camera_id)}):
         for face in e['faces']:
             features.append(face_to_features(face))
             
+    print(f'  face features: {len(features)}')
     if len(features) == 0:
+        print('  skipping...')
         continue
+
+    if len(features) > max_features:
+        np.random.shuffle(features)
+        features = features[:max_features]
+        print(f'  limited features: {max_features}')
             
     features = np.asarray(features)
     clusterer = DBSCAN(min_samples=min_samples)
     labels = clusterer.fit_predict(features)
     unique = np.unique(labels[labels != -1])
     
+    print(f'  unique clusters: {len(unique)}')
     if len(unique) == 0:
+        print('  skipping...')
         continue
-        
-    print('camera', camera_id, 'faces:', len(unique))
     
     for label in unique:
         in_group = features[labels == label]
