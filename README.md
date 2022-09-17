@@ -16,6 +16,7 @@ Commissioned by HeK and MU for the exhibition [Real Feelings](https://www.hek.ch
 * Install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) (not Anaconda)
 * Install git and checkout the repository `sudo apt install git && git clone https://github.com/lmccart/vibe-check.git`
 * Install Chrome
+* Install [nvm](https://github.com/nvm-sh/nvm) and `npm install --global fast-cli`
 
 ## Setup
 
@@ -48,20 +49,20 @@ Install XBindKeys:
 
 ```
 sudo apt-get install xbindkeys xbindkeys-config
-xbindkeys --defaults > /home/hek/.xbindkeysrc
+xbindkeys --defaults > ~/.xbindkeysrc
 xbindkeys-config
 ```
 
 Add an action for `control+shift + q` pointing to:
 
 ```
-bash /home/hek/Documents/vibe-check/automate/killall-chrome.sh
+bash /home/vibecheck/Documents/vibe-check/automate/killall-chrome.sh
 ```
 
 And for `control+shift + c` pointing to:
 
 ```
-bash /home/hek/Documents/vibe-check/automate/open-chrome.sh
+bash /home/vibecheck/Documents/vibe-check/automate/open-chrome.sh
 ```
 
 Set the machine to automatically reboot daily at 6am:

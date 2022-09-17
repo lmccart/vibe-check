@@ -8,24 +8,15 @@ bash download-models.sh
 
 ## Setup environment
 
-The `vibe-check-face` Anaconda environment is used for `cluster.py`, which runs regularly. `vibe-check-dlib` is needed for `vibe-check-face` service.
+The `vibe-check-face` Anaconda environment is used for `database/cluster.py`, which runs regularly. `vibe-check-dlib` is needed for `vibe-check-face` service.
 
 With Anaconda:
 
 ```
 conda create -y --name vibe-check-face --no-default-packages python=3.7
 conda activate vibe-check-face
-conda install -y opencv numpy scipy
-conda install -y -c conda-forge dlib
-pip install onnx onnxruntime easydict scikit-image sklearn flask pymongo hdbscan
-```
-
-Or from the yml file:
-
-```
-conda env create -f environment.yml
-conda activate vibe-check-app
-python app.py
+conda install -y numpy scipy
+pip install opencv-python onnx onnxruntime easydict scikit-image sklearn flask pymongo hdbscan
 ```
 
 ## Install CUDA
@@ -39,26 +30,16 @@ sudo apt install nvidia-driver-440
 Then install CUDA (without the NVIDIA driver):
 
 ```
-cd ~
-wget https://developer.nvidia.com/compute/cuda/10.1/Prod/local_installers/cuda_10.1.105_418.39_linux.run
-chmod +x cuda_10.1.105_418.39_linux.run
-sudo ./cuda_10.1.105_418.39_linux.run
-```
-
-And add the path to your `~/.profile`:
-
-```
-if [ -d "/usr/local/cuda-10.1/bin/" ]; then
-    export PATH=/usr/local/cuda-10.1/bin${PATH:+:${PATH}}
-    export LD_LIBRARY_PATH=/usr/local/cuda-10.1/lib64${LD_LIBRARY_PATH:+:${LD_LIBRARY_PATH}}
-fi
+cd ~/Downloads
+wget https://developer.download.nvidia.com/compute/cuda/11.7.1/local_installers/cuda_11.7.1_515.65.01_linux.run
+sudo sh cuda_11.7.1_515.65.01_linux.run
 ```
 
 Install cudnn with apt:
 
 ```
-sudo apt-key adv --fetch-keys  http://developer.download.nvidia.com/compute/cuda/repos/ubuntu1804/x86_64/7fa2af80.pub
-sudo bash -c 'echo "deb http://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu1804/x86_64 /" > /etc/apt/sources.list.d/cuda_learn.list'
+sudo apt-key adv --fetch-keys https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2004/x86_64/7fa2af80.pub 
+sudo bash -c 'echo "deb https://developer.download.nvidia.com/compute/machine-learning/repos/ubuntu2004/x86_64/ /" > /etc/apt/sources.list.d/cuda_learn.list'
 sudo apt update
 sudo apt install libcudnn8 libcudnn8-dev
 ```
@@ -77,8 +58,8 @@ cmake --build . --config Release
 sudo ldconfig
 cd ..
 python setup.py install --record files.txt
-conda install -y opencv
-pip install flask onnxruntime pymongo
+conda install -y numpy
+pip install opencv-python flask onnxruntime pymongo
 ```
 
 ## Building the blocklist
