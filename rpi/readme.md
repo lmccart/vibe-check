@@ -14,6 +14,20 @@ Then run:
 ./cameras ping
 ```
 
+In `camera/stream.py` set the host correctly (should be `vibecheck.local` but may change if running on a different server).
+
+```
+./cameras update
+./cameras restart
+```
+
+Then check `face/data/snapshot` for recent photos. To get a new photo, delete the old one and it will be replaced with a new snapshot. The cameras may take a moment to find the correct exposure.
+
+Additionally:
+
+1. Check the color on each camera
+2. Check the focus on each camera
+
 ## Raspberry Pi setup
 
 ### SD card setup

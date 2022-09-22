@@ -44,11 +44,21 @@ for camera_id in range(camera_count):
         in_group = features[labels == label]
         out_group = features[labels != label]
         mean = in_group.mean(0)
-        farthest = np.sqrt((in_group - mean) ** 2).sum(1).max()
-        nearest = np.sqrt((out_group - mean) ** 2).sum(1).min()
-        print('  ', label, 'farthest', round(farthest,2), 'nearest', round(nearest, 2))
+
+        try:
+            farthest = np.sqrt((in_group - mean) ** 2).sum(1).max()
+            print('  ', label, 'farthest', round(farthest, 2))
+        except ValueError:
+            print('  ', label, 'farthest error')
+
+        try:
+            nearest = np.sqrt((out_group - mean) ** 2).sum(1).min()
+            print('  ', label, 'nearest', round(nearest, 2))
+        except ValueError:
+            print('  ', label, 'nearest error')
         
         blocklist[str(camera_id)].append(mean)
 
+print('saving blocklist')
 with open('blocklist.pkl', 'wb') as f:
     pickle.dump(dict(blocklist), f)
