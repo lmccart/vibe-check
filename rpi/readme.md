@@ -2,11 +2,15 @@
 
 ## Setup with a new computer
 
-If you don't already have an ssh key, run `ssh-keygen`. Then run:
+If you don't already have an ssh key, run `ssh-keygen`.
+
+Uncomment `IDS="0 1 2 3 4 5 6 7 8 9 10 11"` in `camera-functions.sh` to include all cameras.
+
+Then run:
 
 ``` 
 ./cameras list
-./cameras ssh-copy-id
+./cameras ssh-copy-id # pass: raspberry
 ./cameras ping
 ```
 

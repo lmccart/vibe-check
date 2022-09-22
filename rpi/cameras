@@ -118,7 +118,7 @@ for ID in $IDS; do
     ADDRESS=$HOSTNAME_PREFIX$ID$HOSTNAME_SUFFIX
     AT=pi@$ADDRESS
     PREFIX=`printf "%2s" $ID`
-    
+
     # check if the device is online before continuing
     ssh -q \
         -o BatchMode=yes \
@@ -135,72 +135,71 @@ for ID in $IDS; do
         else
             echo "$PREFIX up, cannot ssh"
         fi
-        continue
+    else
+        case "$1" in
+        ping)
+            echo "$PREFIX up"
+        ;;
+        exec)
+            ssh $AT "${@:2}"
+        ;;
+        shutdown)
+            ssh $AT "/sbin/shutdown now"
+        ;;
+        reboot)
+            ssh $AT "/sbin/shutdown --reboot now"
+        ;;
+        pingtime)
+            HOSTNAME=$(hostname)
+            ssh $AT 'RTT=`ping -c4 -i0.2 '$HOSTNAME'.local | grep rtt` &&\
+                echo '$ID' $RTT'
+        ;;
+        status) 
+            ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` ;\
+                CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` ;\
+                ACTIVE=`systemctl is-active vibecheck` ;\
+                STATUS=`tail -n1 /var/log/vibecheck.log` ;\
+                ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` ;\
+                echo '$ID' $ACTIVE $TEMP $CPU_MEM $STATUS / $ERR_STATUS'
+        ;;
+        update)
+            rsync -a \
+                --exclude=.DS_Store \
+                --exclude=__pycache__ \
+                --delete \
+                camera/ $AT:~/$ROOT_NAME/
+            rsync -a config/$ID.json $AT:~/$ROOT_NAME/config.json
+            ssh $AT 'sudo install -m 644 camera/libarducam_mipicamera.so /usr/lib/'
+            echo $ID 'updated'
+        ;;
+        enable)
+            ssh $AT "systemctl enable vibecheck"
+        ;;
+        disable)
+            ssh $AT "systemctl disable vibecheck"
+        ;;
+        start)
+            ssh $AT "systemctl start vibecheck"
+        ;;
+        stop)
+            ssh $AT "systemctl stop vibecheck"
+        ;;
+        restart)
+            ssh $AT "systemctl restart vibecheck"
+        ;;
+        download)
+            if [ "$#" -ne 2 ]; then
+                echo "Example: ./$SCRIPT download /home/pi/reference/"
+                usage
+            fi
+
+            REMOTE_DIR=$2
+            LOCAL_DIR=download/$ID
+            mkdir -p $LOCAL_DIR
+            rsync -a $AT:$REMOTE_DIR $LOCAL_DIR
+        ;;
+        esac
     fi
-
-    case "$1" in
-    ping)
-        echo "$PREFIX up"
-    ;;
-    exec)
-        ssh $AT "${@:2}"
-    ;;
-    shutdown)
-        ssh $AT "/sbin/shutdown now"
-    ;;
-    reboot)
-        ssh $AT "/sbin/shutdown --reboot now"
-    ;;
-    pingtime)
-        HOSTNAME=$(hostname)
-        ssh $AT 'RTT=`ping -c4 -i0.2 '$HOSTNAME'.local | grep rtt` &&\
-            echo '$ID' $RTT'
-    ;;
-    status) 
-        ssh $AT 'TEMP=`vcgencmd measure_temp|cut -d= -f2` ;\
-            CPU_MEM=`ps --no-headers -eo cmd,%cpu,%mem --sort=-%cpu|head -n1|cut -d" " -f4-` ;\
-            ACTIVE=`systemctl is-active vibecheck` ;\
-            STATUS=`tail -n1 /var/log/vibecheck.log` ;\
-            ERR_STATUS=`tail -n1 /var/log/vibecheck.err.log` ;\
-            echo '$ID' $ACTIVE $TEMP $CPU_MEM $STATUS / $ERR_STATUS'
-    ;;
-    update)
-        rsync -a \
-            --exclude=.DS_Store \
-            --exclude=__pycache__ \
-            --delete \
-            camera/ $AT:~/$ROOT_NAME/
-        rsync -a config/$ID.json $AT:~/$ROOT_NAME/config.json
-        ssh $AT 'sudo install -m 644 camera/libarducam_mipicamera.so /usr/lib/'
-        echo $ID 'updated'
-    ;;
-    enable)
-        ssh $AT "systemctl enable vibecheck"
-    ;;
-    disable)
-        ssh $AT "systemctl disable vibecheck"
-    ;;
-    start)
-        ssh $AT "systemctl start vibecheck"
-    ;;
-    stop)
-        ssh $AT "systemctl stop vibecheck"
-    ;;
-    restart)
-        ssh $AT "systemctl restart vibecheck"
-    ;;
-    download)
-        if [ "$#" -ne 2 ]; then
-            echo "Example: ./$SCRIPT download /home/pi/reference/"
-            usage
-        fi
-
-        REMOTE_DIR=$2
-        LOCAL_DIR=download/$ID
-        mkdir -p $LOCAL_DIR
-        rsync -a $AT:$REMOTE_DIR $LOCAL_DIR
-    ;;
-    esac
 } &
 done
 wait
