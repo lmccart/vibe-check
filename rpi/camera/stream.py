@@ -16,9 +16,16 @@ import arducam_mipicamera as arducam
 import v4l2
 import numpy as np
 import requests
+import time
 from requests.exceptions import ConnectionError
 
 print('loading configuration')
+
+# mostly disable during specific times
+slow_begin_utc_hour = 21 # begin at 9pm UTC, 11pm denmark time
+slow_end_utc_hour = 3 # end at 3am UTC, 5am denmark time
+slow_sleep_duration = 60 # only one frame per minute when disabled
+prev_slow_status = None
 
 # default configuration
 min_exposure = 1280
@@ -84,7 +91,8 @@ def modify_exposure(multiplier):
     camera.set_control(v4l2.V4L2_CID_EXPOSURE, config['exposure'])
 
 def capture_and_send():
-
+    global prev_slow_status
+    
     # uncomment to update in realtime
 
     # with open('config.json') as f:
@@ -119,6 +127,15 @@ def capture_and_send():
         log('sent', round(mb, 2), 'MB')
     except ConnectionError:
         log('connection error')
+
+    # run slowly during off-hours
+    hour = datetime.datetime.utcnow().hour
+    slow_status = hour > slow_begin_utc_hour or hour < slow_end_utc_hour
+    if slow_status != prev_slow_status:
+        log('slow mode' if slow_status else 'full speed mode')
+    if slow_status:
+        time.sleep(slow_sleep_duration)
+    prev_slow_status = slow_status
 
 log('capturing')
 while True:

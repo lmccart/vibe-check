@@ -27,6 +27,7 @@ Additionally:
 
 1. Check the color on each camera
 2. Check the focus on each camera
+3. Modify `slow_begin_utc_hour` and `slow_end_utc_hour` in `camera/stream.py` to match the correct time zone and opening hours of the installation.
 
 ## Raspberry Pi setup
 
