@@ -1,0 +1,1 @@
+DISPLAY=:0 xdo close -a "Sponsored session"

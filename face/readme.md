@@ -21,10 +21,10 @@ pip install opencv-python onnx onnxruntime easydict scikit-image sklearn flask p
 
 ## Install CUDA
 
-First install the NVIDIA Driver. This was originally tested under 440.100:
+First install the NVIDIA Driver. This was originally tested under 515:
 
 ```
-sudo apt install nvidia-driver-440
+sudo apt install nvidia-driver-515
 ```
 
 Then install CUDA (without the NVIDIA driver):
