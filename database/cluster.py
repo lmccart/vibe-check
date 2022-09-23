@@ -75,6 +75,8 @@ def get_weight(dt, falloff=100):
     now = datetime.datetime.now().astimezone()
     secs = (now - dt).total_seconds() # positive
     hours = secs / (60 * 60)
+    # print(now)
+    # print('hours since:', hours)
     return math.exp(-hours / falloff)
 
 # main method, analyzes each entry in recognized-photos, builds db of people, updates mongo
@@ -88,6 +90,8 @@ def update_db(recognized_photos):
         # to run this script in a different timezone than the database,
         # pass the database's timezone to astimezone(). e.g., UTC+2 (CEST):
         # db_timezone = datetime.timezone(datetime.timedelta(seconds=7200))
+        # print(document['photoPath'])
+        # print(document['created'].astimezone())
         weight = get_weight(document['created'].astimezone())
 
         # get sum of expressions in photo
