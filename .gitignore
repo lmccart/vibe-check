@@ -5,6 +5,7 @@ __pycache__
 .ipynb_checkpoints
 *.DS_Store
 *.pyc
+gdpr-log.txt
 
 # placeholder frontend data
 app/images

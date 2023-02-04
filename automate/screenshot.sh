@@ -1,4 +1,5 @@
 mkdir -p screenshot
+rm screenshot/*
 cd screenshot
 {
     DISPLAY=:0.0 scrot 0.jpg -t 50 &
